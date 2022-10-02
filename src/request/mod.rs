@@ -43,6 +43,7 @@ macro_rules! const_setter {
 pub mod comment;
 pub mod level;
 pub mod user;
+pub mod account;
 
 pub const REQUEST_BASE_URL: &str = "http://www.boomlings.com/database/";
 
