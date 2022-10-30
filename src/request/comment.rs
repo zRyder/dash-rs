@@ -2,13 +2,14 @@
 
 use crate::{
     model::level::Level,
-    request::{BaseRequest, GD_21, REQUEST_BASE_URL},
+    request::{BaseRequest, GD_21, REQUEST_BASE_URL, AuthenticatedUser},
 };
 use serde::Serialize;
 
 pub const LEVEL_COMMENTS_ENDPOINT: &str = "getGJComments21.php";
 pub const PROFILE_COMMENT_ENDPOINT: &str = "getGJAccountComments20.php";
 pub const COMMENT_HISTORY_ENDPOINT: &str = "getGJCommentHistory.php";
+pub const DELETE_COMMENT_ENDPOINT: &str = "deleteGJComment20.php";
 
 /// The different orderings that can be requested for level comments
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize)]
@@ -252,6 +253,51 @@ impl<'a> CommentHistoryRequest<'a> {
     pub const fn sort_mode(mut self, sort_mode: SortMode) -> Self {
         self.sort_mode = sort_mode;
         self
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Hash)]
+pub struct DeleteCommentRequest<'a> {
+    /// The authenticated user data
+    pub authenticated_user: AuthenticatedUser<'a>,
+
+    /// The id of the level comment to delete
+    /// ## GD Internals:
+    /// This field is called `commentID` in the boomlings API
+    #[serde(rename = "commentID")]
+    pub comment_id: u64,
+
+    /// The id of the level the comment to delete is posted to
+    /// ## GD Internals:
+    /// This field is called `levelID` in the boomlings API
+    #[serde(rename = "levelID")]
+    pub level_id: u64,
+
+    /// The secret token to call /database/accounts routes
+    pub secret: &'a str
+}
+
+impl<'a> DeleteCommentRequest<'a> {
+    const_setter!(comment_id: u64);
+    const_setter!(level_id: u64);
+
+    pub fn new(authenticated_user: AuthenticatedUser<'a>) -> Self{
+        DeleteCommentRequest {
+            authenticated_user,
+            comment_id: 0,
+            level_id: 0,
+            secret: super::ACCOUNT_SECRET,
+        }
+    }
+    
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, DELETE_COMMENT_ENDPOINT)
+    }
+}
+
+impl ToString for DeleteCommentRequest<'_> {
+    fn to_string(&self) -> String {
+        super::to_string(self)
     }
 }
 

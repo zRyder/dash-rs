@@ -48,6 +48,7 @@ pub mod user;
 pub mod account;
 
 pub const REQUEST_BASE_URL: &str = "http://www.boomlings.com/database/";
+pub const ACCOUNT_SECRET: &str = "Wmfv3899gc9";
 
 /// A `BaseRequest` instance that has all its fields set to the
 /// same values a Geometry Dash 2.1 client would use
@@ -109,8 +110,15 @@ impl Default for BaseRequest<'static> {
     }
 }
 
-#[derive(Debug, Serialize)]
-pub struct AuthenticatedUser {
+#[derive(Debug, Serialize, Default, Clone, Hash)]
+pub struct AuthenticatedUser<'a> {
+    /// The user name of the authenticated user
+    ///
+    /// ## GD Internals:
+    /// This field is called `userName` in the boomlings API
+    #[serde(rename = "userName")]
+    pub user_name: &'a str,
+
     /// The account ID of the authenticated user
     ///
     /// ## GD Internals:
