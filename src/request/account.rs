@@ -71,19 +71,19 @@ impl<'a> LoginRequest<'a> {
             .await
     }
 
-    pub async fn to_authenticated_user(&self) -> AuthenticatedUser {
+    pub async fn to_authenticated_user(&self) -> Result<AuthenticatedUser,  AuthenticationError> {
         match self.execute().await {
             Ok(login_result) => {
 
                 let response_body = login_result.text().await.unwrap();
                 if response_body.eq("-1") {
-
+                    return Err(AuthenticationError("invalid credentials".into()))
                 }
 
-                AuthenticatedUser {
+                Ok(AuthenticatedUser {
                     account_id: response_body.splitn(2, ",").next().unwrap().parse::<u64>().unwrap(),
                     password_hash: base64::encode(&xor(self.password.as_bytes().to_vec(), "37526".as_bytes()))
-                }
+                })
 
                 // Box::new(AuthenticatedUser{
                 //     account_id: account_id,
@@ -91,10 +91,7 @@ impl<'a> LoginRequest<'a> {
                 // })
             }
             Err(login_error) => {
-                AuthenticatedUser{
-                    account_id: 0,
-                    password_hash: String::new()
-                }
+                Err(AuthenticationError(login_error.to_string()))
             }
         }
     }
@@ -126,7 +123,7 @@ fn xor(s: Vec<u8>, key: &[u8]) -> Vec<u8> {
 // }
 
 #[derive(Debug, Clone)]
-struct AuthenticationError(String);
+pub struct AuthenticationError(String);
 
 impl std::error::Error for AuthenticationError {}
 
@@ -152,6 +149,6 @@ mod tests {
             .user_name("Ryder")
             .password("PASS HERE");
 
-        println!("{:?}", request.to_authenticated_user().await);
+        println!("{:?}", request.to_authenticated_user().await.unwrap());
     }
 }
