@@ -122,7 +122,7 @@ pub struct AuthenticatedUser {
     ///
     /// ## GD Internals:
     /// This field is called `gjp` in the boomlings API
-    #[serde(rename = "accountID")]
+    #[serde(rename = "gjp")]
     pub password_hash: String,
 }
 
