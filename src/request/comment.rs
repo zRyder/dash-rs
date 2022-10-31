@@ -13,6 +13,7 @@ pub const UPLOAD_COMMENT_ENDPOINT: &str = "uploadGJComment21.php";
 pub const DELETE_COMMENT_ENDPOINT: &str = "deleteGJComment20.php";
 
 pub const COMMENT_CHK_SALT: &str = "xPT6iUrtws0J";
+pub const COMMENT_XOR_CHK_KEY: &str = "29481";
 
 /// The different orderings that can be requested for level comments
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize)]
@@ -298,7 +299,7 @@ pub struct UploadCommentRequest<'a> {
     pub level_id: u64,
 
     /// The percent completed to display on the comment, this should be a number between 0 or 100 if present
-    pub percent: Option<u8>,
+    pub percent: u8,
 
     /// The CHK for /uploadGJComment21.php
     pub chk: String
@@ -306,7 +307,7 @@ pub struct UploadCommentRequest<'a> {
 
 impl<'a> UploadCommentRequest<'a> {
     const_setter!(level_id: u64);
-    const_setter!(percent: Option<u8>);
+    const_setter!(percent: u8);
 
     pub fn new(authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
         Self::with_base(GD_21, authenticated_user, level_id)
@@ -318,7 +319,7 @@ impl<'a> UploadCommentRequest<'a> {
             authenticated_user,
             comment: String::new(),
             level_id,
-            percent: None,
+            percent: 0,
             chk: String::new()
         }
     }
@@ -333,35 +334,30 @@ impl<'a> UploadCommentRequest<'a> {
     }
 
     fn generate_chk(mut self) -> Self {
+        self.chk = format!("{}{}{}{}{}{}",
+                           self.authenticated_user.user_name,
+                           self.comment,
+                           self.level_id,
+                           self.percent,
+                           0,
+                           COMMENT_CHK_SALT,
+        );
 
-        if let Some(chk_percent) = self.percent {
-            self.chk = format!("{}{}{}{}{}{}",
-                               self.authenticated_user.user_name,
-                               self.comment,
-                               self.level_id,
-                               chk_percent,
-                               0,
-                               COMMENT_CHK_SALT,
-            )
-        }
-        else {
-            self.chk = format!("{}{}{}{}{}{}",
-                               self.authenticated_user.user_name,
-                               self.comment,
-                               self.level_id,
-                               0,
-                               0,
-                               COMMENT_CHK_SALT,
-            )
-        }
-
-        let test = util::xor(util::sha_encrypt(self.chk.as_str()).as_bytes().to_vec(), "29481".as_bytes());
-        println!("{:?}", test.as_slice());
-        self.chk = base64::encode_config(test.as_slice(), base64::URL_SAFE) ;
+        let xor_chk = util::xor(util::sha_encrypt(self.chk.as_str()).as_bytes().to_vec(), COMMENT_XOR_CHK_KEY.as_bytes());
+        self.chk = base64::encode_config(xor_chk.as_slice(), base64::URL_SAFE);
         self
     }
+}
 
-    async fn execute(&mut self) -> Result<Response, Error> {
+impl ToString for UploadCommentRequest<'_> {
+    fn to_string(&self) -> String {
+        super::to_string(self)
+    }
+}
+
+#[async_trait]
+impl<'a> Executable for UploadCommentRequest<'a> {
+    async fn execute(&self) -> Result<Response, Error> {
 
         let reqwest_client = reqwest::Client::new();
         println!("{:?}", self.to_string());
@@ -374,29 +370,6 @@ impl<'a> UploadCommentRequest<'a> {
             .await
     }
 }
-
-impl ToString for UploadCommentRequest<'_> {
-    fn to_string(&self) -> String {
-        super::to_string(self)
-    }
-}
-
-// #[async_trait]
-// impl<'a> Executable for UploadCommentRequest<'a> {
-//     async fn execute(&mut self) -> Result<Response, Error> {
-//
-//         let reqwest_client = reqwest::Client::new();
-//         println!("{:?}", self.to_string());
-//         println!("{:?}", self.to_url());
-//         self.authenticated_user.password_hash = "YVZMR0FEUgM".parse().unwrap();
-//         reqwest_client
-//             .post(self.to_url())
-//             .body(self.to_string())
-//             .header("Content-Type", "application/x-www-form-urlencoded")
-//             .send()
-//             .await
-//     }
-// }
 
 #[derive(Debug, Clone, Serialize, Hash)]
 pub struct DeleteCommentRequest<'a> {
@@ -522,8 +495,8 @@ mod tests {
             .unwrap();
 
         let comment_upload_request = crate::request::comment::UploadCommentRequest::new(login_response, 85179632)
-            .comment(String::from("Ok got to go, be on your best behavior chat but first 66%!!! Later gamers"))
-            .percent(Some(66))
+            .comment(String::from("I tested something and now I made changes, I won't see responses to this comment but hi again daily chat. Don't break comment rules still ! ! !"))
+            .percent(100)
             .generate_chk()
             .execute()
             .await
