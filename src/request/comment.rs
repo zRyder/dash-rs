@@ -276,7 +276,7 @@ impl<'a> Executable for CommentHistoryRequest<'a> {
         reqwest_client
             .post(self.to_url())
             .body(self.to_string())
-            .header("Content-Type", "application/x-www-form-urlencoded")
+            .header(super::CONTENT_TYPE, super::URL_FORM_ENCODED)
             .send()
             .await
     }
@@ -360,7 +360,7 @@ impl<'a> Executable for UploadCommentRequest<'a> {
         reqwest_client
             .post(self.to_url())
             .body(self.to_string())
-            .header("Content-Type", "application/x-www-form-urlencoded")
+            .header(super::CONTENT_TYPE, super::URL_FORM_ENCODED)
             .send()
             .await
     }
@@ -418,7 +418,7 @@ impl<'a> Executable for DeleteCommentRequest<'a> {
         reqwest_client
             .post(self.to_url())
             .body(self.to_string())
-            .header("Content-Type", "application/x-www-form-urlencoded")
+            .header(super::CONTENT_TYPE, super::URL_FORM_ENCODED)
             .send()
             .await
     }

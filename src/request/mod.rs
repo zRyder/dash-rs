@@ -51,6 +51,9 @@ pub mod account;
 pub const REQUEST_BASE_URL: &str = "http://www.boomlings.com/database/";
 pub const ACCOUNT_SECRET: &str = "Wmfv3899gc9";
 
+pub const CONTENT_TYPE: &str = "Content-Type";
+pub const URL_FORM_ENCODED: &str = "application/x-www-form-urlencoded";
+
 /// A `BaseRequest` instance that has all its fields set to the
 /// same values a Geometry Dash 2.1 client would use
 pub const GD_21: BaseRequest = BaseRequest::new(
