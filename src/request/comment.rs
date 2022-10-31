@@ -1,5 +1,6 @@
 //! Module containing request structs for retrieving profile/level comments
 
+use std::borrow::Cow;
 use reqwest::{Error, Response};
 use crate::{model::level::Level, request::{BaseRequest, GD_21, REQUEST_BASE_URL, AuthenticatedUser}, util};
 use serde::Serialize;
@@ -290,7 +291,7 @@ pub struct UploadCommentRequest<'a> {
     pub authenticated_user: AuthenticatedUser<'a>,
 
     /// The content of the comment, this value will be base64 url encoded
-    pub comment: String,
+    pub comment: Cow<'a, str>,
 
     /// The id of the level the comment to upload is posted to
     /// ## GD Internals:
@@ -302,7 +303,7 @@ pub struct UploadCommentRequest<'a> {
     pub percent: u8,
 
     /// The CHK for /uploadGJComment21.php
-    pub chk: String
+    pub chk: Cow<'a, str>
 }
 
 impl<'a> UploadCommentRequest<'a> {
@@ -317,10 +318,10 @@ impl<'a> UploadCommentRequest<'a> {
         UploadCommentRequest{
             base,
             authenticated_user,
-            comment: String::new(),
+            comment: Cow::Borrowed(""),
             level_id,
             percent: 0,
-            chk: String::new()
+            chk: Cow::Borrowed("")
         }
     }
 
@@ -334,17 +335,11 @@ impl<'a> UploadCommentRequest<'a> {
     }
 
     fn generate_chk(mut self) -> Self {
-        self.chk = format!("{}{}{}{}{}{}",
-                           self.authenticated_user.user_name,
-                           self.comment,
-                           self.level_id,
-                           self.percent,
-                           0,
-                           COMMENT_CHK_SALT,
-        );
+        self.chk = format!("{}{}{}{}{}{}", self.authenticated_user.user_name, self.comment, self.level_id, self.percent, 0, COMMENT_CHK_SALT)
+            .into();
 
-        let xor_chk = util::xor(util::sha_encrypt(self.chk.as_str()).as_bytes().to_vec(), COMMENT_XOR_CHK_KEY.as_bytes());
-        self.chk = base64::encode_config(xor_chk.as_slice(), base64::URL_SAFE);
+        let xor_chk = util::xor(util::sha_encrypt(self.chk).as_bytes().to_vec(), COMMENT_XOR_CHK_KEY.as_bytes());
+        self.chk = base64::encode_config(xor_chk.as_slice(), base64::URL_SAFE).into();
         self
     }
 }
@@ -495,8 +490,8 @@ mod tests {
             .unwrap();
 
         let comment_upload_request = crate::request::comment::UploadCommentRequest::new(login_response, 85179632)
-            .comment(String::from("I tested something and now I made changes, I won't see responses to this comment but hi again daily chat. Don't break comment rules still ! ! !"))
-            .percent(100)
+            .comment(String::from("More tests still ignore me"))
+            .percent(69)
             .generate_chk()
             .execute()
             .await

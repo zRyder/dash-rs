@@ -84,7 +84,7 @@ impl<'a> LoginRequest<'a> {
                 Ok(AuthenticatedUser {
                     user_name: self.user_name,
                     account_id: response_body.splitn(2, ",").next().unwrap().parse::<u64>().unwrap(),
-                    password_hash: base64::encode(&util::xor(self.password.as_bytes().to_vec(), XOR_KEY.as_bytes()))
+                    password_hash: base64::encode_config(&util::xor(self.password.as_bytes().to_vec(), XOR_KEY.as_bytes()), base64::URL_SAFE).into()
                 })
             }
             Err(login_error) => {

@@ -5,6 +5,7 @@
 //! making/proxying requests for the boomlings servers seems rather useless to me, as they already
 //! contain a lot of boomlings-specific fields.
 
+use std::borrow::Cow;
 use crate::{model::GameVersion, serde::RequestSerializer};
 use serde::{Deserialize, Serialize};
 use async_trait::async_trait;
@@ -131,7 +132,7 @@ pub struct AuthenticatedUser<'a> {
     /// ## GD Internals:
     /// This field is called `gjp` in the boomlings API
     #[serde(rename = "gjp")]
-    pub password_hash: String
+    pub password_hash: Cow<'a, str>
 }
 
 pub(crate) fn to_string<S: Serialize>(request: S) -> String {
