@@ -4,7 +4,8 @@ use reqwest::{Error, Response};
 use serde::{Serialize};
 
 use crate::{
-    request::{/*AuthenticatedUser,*/ REQUEST_BASE_URL}
+    util,
+    request::{REQUEST_BASE_URL}
 };
 use crate::request::AuthenticatedUser;
 
@@ -83,7 +84,7 @@ impl<'a> LoginRequest<'a> {
                 Ok(AuthenticatedUser {
                     user_name: self.user_name,
                     account_id: response_body.splitn(2, ",").next().unwrap().parse::<u64>().unwrap(),
-                    password_hash: base64::encode(&xor(self.password.as_bytes().to_vec(), XOR_KEY.as_bytes()))
+                    password_hash: base64::encode(&util::xor(self.password.as_bytes().to_vec(), XOR_KEY.as_bytes()))
                 })
             }
             Err(login_error) => {
@@ -91,12 +92,6 @@ impl<'a> LoginRequest<'a> {
             }
         }
     }
-}
-
-
-fn xor(s: Vec<u8>, key: &[u8]) -> Vec<u8> {
-    let mut b = key.iter().cycle();
-    s.into_iter().map(|x| x ^ b.next().unwrap()).collect()
 }
 
 #[derive(Debug, Clone)]
@@ -124,7 +119,7 @@ mod tests {
     async fn serialize_login_request() {
         let request = LoginRequest::default()
             .user_name("Ryder")
-            .password("PASS HERE");
+            .password("PASSHERE");
 
         println!("{:?}", request.to_authenticated_user().await.unwrap());
     }

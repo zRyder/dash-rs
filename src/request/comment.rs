@@ -1,15 +1,18 @@
 //! Module containing request structs for retrieving profile/level comments
 
-use crate::{
-    model::level::Level,
-    request::{BaseRequest, GD_21, REQUEST_BASE_URL, AuthenticatedUser},
-};
+use reqwest::{Error, Response};
+use crate::{model::level::Level, request::{BaseRequest, GD_21, REQUEST_BASE_URL, AuthenticatedUser}, util};
 use serde::Serialize;
+use crate::request::Executable;
+use async_trait::async_trait;
 
 pub const LEVEL_COMMENTS_ENDPOINT: &str = "getGJComments21.php";
 pub const PROFILE_COMMENT_ENDPOINT: &str = "getGJAccountComments20.php";
 pub const COMMENT_HISTORY_ENDPOINT: &str = "getGJCommentHistory.php";
+pub const UPLOAD_COMMENT_ENDPOINT: &str = "uploadGJComment21.php";
 pub const DELETE_COMMENT_ENDPOINT: &str = "deleteGJComment20.php";
+
+pub const COMMENT_CHK_SALT: &str = "xPT6iUrtws0J";
 
 /// The different orderings that can be requested for level comments
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize)]
@@ -256,8 +259,150 @@ impl<'a> CommentHistoryRequest<'a> {
     }
 }
 
+impl<'a> ToString for CommentHistoryRequest<'a> {
+    fn to_string(&self) -> String {
+        super::to_string(self)
+    }
+}
+
+#[async_trait]
+impl<'a> Executable for CommentHistoryRequest<'a> {
+    async fn execute(&self) -> Result<Response, Error> {
+        let reqwest_client = reqwest::Client::new();
+        println!("{:?}", self.to_string());
+        println!("{:?}", self.to_url());
+        reqwest_client
+            .post(self.to_url())
+            .body(self.to_string())
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .send()
+            .await
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Hash)]
+pub struct UploadCommentRequest<'a> {
+    /// The base request data
+    pub base: BaseRequest<'a>,
+
+    /// The authenticated user data
+    pub authenticated_user: AuthenticatedUser<'a>,
+
+    /// The content of the comment, this value will be base64 url encoded
+    pub comment: String,
+
+    /// The id of the level the comment to upload is posted to
+    /// ## GD Internals:
+    /// This field is called `levelID` in the boomlings API
+    #[serde(rename = "levelID")]
+    pub level_id: u64,
+
+    /// The percent completed to display on the comment, this should be a number between 0 or 100 if present
+    pub percent: Option<u8>,
+
+    /// The CHK for /uploadGJComment21.php
+    pub chk: String
+}
+
+impl<'a> UploadCommentRequest<'a> {
+    const_setter!(level_id: u64);
+    const_setter!(percent: Option<u8>);
+
+    pub fn new(authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
+        Self::with_base(GD_21, authenticated_user, level_id)
+    }
+
+    pub const fn with_base(base: BaseRequest<'a>, authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
+        UploadCommentRequest{
+            base,
+            authenticated_user,
+            comment: String::new(),
+            level_id,
+            percent: None,
+            chk: String::new()
+        }
+    }
+
+    pub fn comment(mut self, comment_content: String) -> Self {
+        self.comment = base64::encode_config(comment_content.as_bytes(), base64::URL_SAFE).into();
+        self
+    }
+
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, UPLOAD_COMMENT_ENDPOINT)
+    }
+
+    fn generate_chk(mut self) -> Self {
+
+        if let Some(chk_percent) = self.percent {
+            self.chk = format!("{}{}{}{}{}{}",
+                               self.authenticated_user.user_name,
+                               self.comment,
+                               self.level_id,
+                               chk_percent,
+                               0,
+                               COMMENT_CHK_SALT,
+            )
+        }
+        else {
+            self.chk = format!("{}{}{}{}{}{}",
+                               self.authenticated_user.user_name,
+                               self.comment,
+                               self.level_id,
+                               0,
+                               0,
+                               COMMENT_CHK_SALT,
+            )
+        }
+
+        let test = util::xor(util::sha_encrypt(self.chk.as_str()).as_bytes().to_vec(), "29481".as_bytes());
+        println!("{:?}", test.as_slice());
+        self.chk = base64::encode_config(test.as_slice(), base64::URL_SAFE) ;
+        self
+    }
+
+    async fn execute(&mut self) -> Result<Response, Error> {
+
+        let reqwest_client = reqwest::Client::new();
+        println!("{:?}", self.to_string());
+        println!("{:?}", self.to_url());
+        reqwest_client
+            .post(self.to_url())
+            .body(self.to_string())
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .send()
+            .await
+    }
+}
+
+impl ToString for UploadCommentRequest<'_> {
+    fn to_string(&self) -> String {
+        super::to_string(self)
+    }
+}
+
+// #[async_trait]
+// impl<'a> Executable for UploadCommentRequest<'a> {
+//     async fn execute(&mut self) -> Result<Response, Error> {
+//
+//         let reqwest_client = reqwest::Client::new();
+//         println!("{:?}", self.to_string());
+//         println!("{:?}", self.to_url());
+//         self.authenticated_user.password_hash = "YVZMR0FEUgM".parse().unwrap();
+//         reqwest_client
+//             .post(self.to_url())
+//             .body(self.to_string())
+//             .header("Content-Type", "application/x-www-form-urlencoded")
+//             .send()
+//             .await
+//     }
+// }
+
 #[derive(Debug, Clone, Serialize, Hash)]
 pub struct DeleteCommentRequest<'a> {
+    /// The base request data
+    pub base: BaseRequest<'a>,
+
     /// The authenticated user data
     pub authenticated_user: AuthenticatedUser<'a>,
 
@@ -272,26 +417,42 @@ pub struct DeleteCommentRequest<'a> {
     /// This field is called `levelID` in the boomlings API
     #[serde(rename = "levelID")]
     pub level_id: u64,
-
-    /// The secret token to call /database/accounts routes
-    pub secret: &'a str
 }
 
 impl<'a> DeleteCommentRequest<'a> {
     const_setter!(comment_id: u64);
     const_setter!(level_id: u64);
 
-    pub fn new(authenticated_user: AuthenticatedUser<'a>) -> Self{
+    pub fn new(authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
+        Self::with_base(GD_21, authenticated_user, level_id)
+    }
+
+    pub const fn with_base(base: BaseRequest<'a>, authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
         DeleteCommentRequest {
+            base,
             authenticated_user,
             comment_id: 0,
-            level_id: 0,
-            secret: super::ACCOUNT_SECRET,
+            level_id
         }
     }
     
     pub fn to_url(&self) -> String {
         format!("{}{}", REQUEST_BASE_URL, DELETE_COMMENT_ENDPOINT)
+    }
+}
+
+#[async_trait]
+impl<'a> Executable for DeleteCommentRequest<'a> {
+    async fn execute(&self) -> Result<Response, Error> {
+        let reqwest_client = reqwest::Client::new();
+        println!("{:?}", self.to_string());
+        println!("{:?}", self.to_url());
+        reqwest_client
+            .post(self.to_url())
+            .body(self.to_string())
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .send()
+            .await
     }
 }
 
@@ -303,7 +464,9 @@ impl ToString for DeleteCommentRequest<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::request::comment::{LevelCommentsRequest, ProfileCommentsRequest, CommentHistoryRequest};
+    use crate::request::comment::{LevelCommentsRequest, ProfileCommentsRequest, CommentHistoryRequest, SortMode};
+    use crate::request::Executable;
+    use crate::response::parse_get_gj_comments_response;
 
     #[test]
     fn serialize_level_comments() {
@@ -346,5 +509,70 @@ mod tests {
             .limit(2);
 
         assert_eq!(super::super::to_string(request), "gameVersion=21&binaryVersion=33&secret=Wmfd2893gb7&total=0&page=0&mode=0&userID=159782398&count=2")
+    }
+
+    #[tokio::test]
+    async fn upload_comment() {
+        let request = crate::request::account::LoginRequest::default()
+            .user_name("Ryder")
+            .password("PASSHERE");
+
+        let login_response = request.to_authenticated_user()
+            .await
+            .unwrap();
+
+        let comment_upload_request = crate::request::comment::UploadCommentRequest::new(login_response, 85179632)
+            .comment(String::from("Ok got to go, be on your best behavior chat but first 66%!!! Later gamers"))
+            .percent(Some(66))
+            .generate_chk()
+            .execute()
+            .await
+            .unwrap()
+            .text().await.unwrap();
+
+        println!("{:?}", comment_upload_request)
+    }
+
+    #[tokio::test]
+    async fn delete_comment() {
+        let request = crate::request::account::LoginRequest::default()
+            .user_name("Ryder")
+            .password("PASSHERE");
+
+        let login_response = request.to_authenticated_user()
+            .await
+            .unwrap();
+
+
+        let comment_history_request = CommentHistoryRequest::new(3713125)
+            .sort_mode(SortMode::Recent)
+            .limit(1)
+            .page(0);
+
+        let comment_history_response = comment_history_request.execute()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
+
+        let comment = parse_get_gj_comments_response(comment_history_response.as_str())
+            .unwrap();
+
+        let comment_id = comment.get(0).unwrap().comment_id;
+
+        println!("{}", &comment_id);
+
+        let comment_delete_request = crate::request::comment::DeleteCommentRequest::new(login_response, 85179632)
+            .comment_id(comment_id);
+
+        let comment_delete_response = comment_delete_request.execute()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
+
+        println!("{}", comment_delete_response)
     }
 }

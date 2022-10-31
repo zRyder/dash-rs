@@ -131,7 +131,7 @@ pub struct AuthenticatedUser<'a> {
     /// ## GD Internals:
     /// This field is called `gjp` in the boomlings API
     #[serde(rename = "gjp")]
-    pub password_hash: String,
+    pub password_hash: String
 }
 
 pub(crate) fn to_string<S: Serialize>(request: S) -> String {
