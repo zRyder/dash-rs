@@ -1,13 +1,12 @@
 use std::fmt;
 use std::fmt::Formatter;
-use reqwest::{Error, Response};
 use serde::{Serialize};
 
 use crate::{
     util,
     request::{REQUEST_BASE_URL}
 };
-use crate::request::AuthenticatedUser;
+use crate::request::{AuthenticatedUser, Executable};
 
 pub const ACCOUNT_LOGIN_ENPOINT: &str = "accounts/loginGJAccount.php";
 pub const XOR_KEY: &str = "37526";
@@ -51,26 +50,11 @@ impl<'a> LoginRequest<'a> {
 
     pub fn default() -> Self {
         LoginRequest{
-            udid: "199095",
+            udid: "100000",
             user_name: "",
             password: "",
             secret: super::ACCOUNT_SECRET
         }
-    }
-
-    pub fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, ACCOUNT_LOGIN_ENPOINT)
-    }
-
-    async fn execute(&self) -> Result<Response, Error> {
-        let reqwest_client = reqwest::Client::new();
-        println!("{}?{}", self.to_url(), self.to_string());
-        reqwest_client
-            .post(self.to_url())
-            .body(self.to_string())
-            .header(super::CONTENT_TYPE, super::URL_FORM_ENCODED)
-            .send()
-            .await
     }
 
     pub async fn to_authenticated_user(&self) -> Result<AuthenticatedUser,  AuthenticationError> {
@@ -91,6 +75,12 @@ impl<'a> LoginRequest<'a> {
                 Err(AuthenticationError(login_error.to_string()))
             }
         }
+    }
+}
+
+impl<'a> Executable for LoginRequest<'a> {
+    fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, ACCOUNT_LOGIN_ENPOINT)
     }
 }
 
@@ -118,9 +108,12 @@ mod tests {
     #[tokio::test]
     async fn serialize_login_request() {
         let request = LoginRequest::default()
-            .user_name("Ryder")
-            .password("PASSHERE");
+            .user_name("TestUser")
+            .password("PLAIN_TEXT_PASS_HERE");
 
-        println!("{:?}", request.to_authenticated_user().await.unwrap());
+        assert_eq!(
+            request.to_string(),
+            "udid=100000&userName=TestUser&password=PLAIN_TEXT_PASS_HERE&secret=Wmfv3899gc9"
+        );
     }
 }

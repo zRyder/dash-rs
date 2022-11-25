@@ -1,6 +1,3 @@
-use reqwest::{
-    Response, Error
-};
 use crate::{
     model::{
         level::{DemonRating, LevelLength, LevelRating},
@@ -84,7 +81,7 @@ impl<'a> LevelRequest<'a> {
     /// Uses a default [`BaseRequest`], and sets the
     /// `inc` field to `true` and `extra` to `false`, as are the default
     /// values set the by the Geometry Dash Client
-    pub const fn new(level_id: u64) -> LevelRequest<'static> {
+    pub const fn new(level_id: u64) -> LevelRequest<'a> {
         LevelRequest {
             base: GD_21,
             level_id,
@@ -92,29 +89,11 @@ impl<'a> LevelRequest<'a> {
             extra: false,
         }
     }
-
-    pub fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, DOWNLOAD_LEVEL_ENDPOINT)
-    }
 }
 
-#[async_trait]
 impl Executable for LevelRequest<'_> {
-    async fn execute(&self) -> Result<Response, Error> {
-        let reqwest_client = reqwest::Client::new();
-        println!("{}?{}", self.to_url(), self.to_string());
-        reqwest_client
-            .post(self.to_url())
-            .body(self.to_string())
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .send()
-            .await
-    }
-}
-
-impl ToString for LevelRequest<'_> {
-    fn to_string(&self) -> String {
-        super::to_string(self)
+    fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, DOWNLOAD_LEVEL_ENDPOINT)
     }
 }
 
@@ -563,10 +542,6 @@ impl<'a> LevelsRequest<'a> {
 
     const_setter!(request_type: LevelRequestType);
 
-    pub fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, SEARCH_LEVEL_ENDPOINT)
-    }
-
     pub fn with_base(base: BaseRequest<'a>) -> Self {
         LevelsRequest {
             base,
@@ -618,21 +593,8 @@ impl<'a> LevelsRequest<'a> {
 
 #[async_trait]
 impl Executable for LevelsRequest<'_>{
-    async fn execute(&self) -> Result<Response, Error> {
-        let reqwest_client = reqwest::Client::new();
-        println!("{}?{}", self.to_url(), self.to_string());
-        reqwest_client
-            .post(self.to_url())
-            .body(self.to_string())
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .send()
-            .await
-    }
-}
-
-impl ToString for LevelsRequest<'_> {
-    fn to_string(&self) -> String {
-        super::to_string(self)
+    fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, SEARCH_LEVEL_ENDPOINT)
     }
 }
 
@@ -730,7 +692,7 @@ mod tests {
         println!("{:?}", request.execute().await.unwrap().text().await.unwrap());
 
         assert_eq!(
-            super::super::to_string(request),
+            request.to_string(),
             "gameVersion=21&binaryVersion=33&secret=Wmfd2893gb7&type=2&str=&len=2,3&diff=-&page=0&total=0&featured=1&original=0&\
              twoPlayer=1&coins=0&epic=1&star=1&completedLevels=(18018958,21373201,22057275,22488444,22008823,23144971,17382902,87600,\
              22031889,22390740,22243264,21923305)&onlyCompleted=0&uncompleted=1"
@@ -742,10 +704,8 @@ mod tests {
         let request = LevelRequest::default()
             .level_id(17448979);
 
-        println!("{:?}", request.execute().await.unwrap().text().await.unwrap());
-
         assert_eq!(
-            super::super::to_string(request),
+            request.to_string(),
             "gameVersion=21&binaryVersion=33&secret=Wmfd2893gb7&levelID=17448979&inc=0&extra=0"
         );
     }
