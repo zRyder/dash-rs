@@ -428,10 +428,11 @@ mod tests {
 
     #[test]
     fn serialize_upload_comment() {
-        let request = UploadCommentRequest::new(TEST_AUTHENTICATED_USER, 85179632)
+        let mut binding = UploadCommentRequest::new(TEST_AUTHENTICATED_USER, 85179632)
             .comment("This is a test comment")
-            .percent(56)
-            .generate_chk();
+            .percent(56);
+
+        let request =  binding.generate_chk();
 
         assert_eq!(
             super::super::to_string(request),

@@ -81,7 +81,6 @@ async fn delete_comment() {
         .await
         .unwrap();
 
-
     let comment_history_request = CommentHistoryRequest::new(3713125)
         .sort_mode(SortMode::Recent)
         .limit(1)
