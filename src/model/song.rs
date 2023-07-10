@@ -8,7 +8,66 @@ use std::{
 mod internal {
     use crate::model::song::NewgroundsSong;
 
-    include!(concat!(env!("OUT_DIR"), "/newgrounds_song.boilerplate"));
+    #[allow(non_upper_case_globals, unused_imports)]
+    const _newgrounds_song: () = {
+        use crate::{
+            serde::{DeError, HasRobtopFormat, IndexedDeserializer, IndexedSerializer, PercentDecoded, SerError, Thunk, RefThunk, Base64Decoded},
+        };
+        use serde::{Deserialize, Serialize};
+        use std::{borrow::{Cow, Borrow}, io::Write};
+        #[derive(Serialize, Deserialize)]
+        struct InternalNewgroundsSong<'src, 'bor> {
+            #[serde(rename = "1")]
+            index_1: u64,
+            #[serde(borrow)]
+            #[serde(rename = "2")]
+            index_2: &'src str,
+            #[serde(rename = "3")]
+            index_3: u64,
+            #[serde(rename = "4")]
+            index_4: &'src str,
+            #[serde(rename = "5")]
+            index_5: f64,
+            #[serde(rename = "6")]
+            index_6: Option<&'src str>,
+            #[serde(rename = "7")]
+            index_7: Option<&'src str>,
+            #[serde(rename = "8")]
+            index_8: &'src str,
+            #[serde(rename = "10")]
+            index_10: RefThunk<'src, 'bor, PercentDecoded<'src>>,
+        }
+        impl<'src> HasRobtopFormat<'src> for NewgroundsSong<'src> {
+            fn from_robtop_str(input: &'src str) -> Result<Self, DeError> {
+                let internal = InternalNewgroundsSong::deserialize(&mut IndexedDeserializer::new(input, "~|~", true))?;
+                Ok(Self {
+                    song_id: internal.index_1,
+                    name: Cow::Borrowed(internal.index_2),
+                    index_3: internal.index_3,
+                    artist: Cow::Borrowed(internal.index_4),
+                    filesize: internal.index_5,
+                    index_6: internal.index_6.map(Cow::Borrowed),
+                    index_7: internal.index_7.map(Cow::Borrowed),
+                    index_8: Cow::Borrowed(internal.index_8),
+                    link: Thunk::Unprocessed(match internal.index_10 {RefThunk::Unprocessed(unproc) => unproc, _ => unreachable!() }),
+                })
+            }
+            fn write_robtop_data<W: Write>(&self, writer: W) -> Result<(), SerError> {
+                let internal = InternalNewgroundsSong {
+                    index_1: self.song_id,
+                    index_2: self.name.as_ref(),
+                    index_3: self.index_3,
+                    index_4: self.artist.as_ref(),
+                    index_5: self.filesize,
+                    index_6: self.index_6.as_deref(),
+                    index_7: self.index_7.as_deref(),
+                    index_8: self.index_8.as_ref(),
+                    index_10: self.link.as_ref_thunk(),
+                };
+                internal.serialize(&mut IndexedSerializer::new("~|~", writer, true))
+            }
+        }
+    };
 }
 
 /// Struct modelling a [`NewgroundsSong`]

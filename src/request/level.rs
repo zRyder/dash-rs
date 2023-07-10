@@ -1,13 +1,15 @@
+use async_trait::async_trait;
+use reqwest::Error;
+use serde::{Deserialize, Serialize, Serializer};
 use crate::{
+    request::{BaseRequest, GD_21, REQUEST_BASE_URL, Executable},
     model::{
         level::{DemonRating, LevelLength, LevelRating},
         song::MainSong,
     },
-    request::{BaseRequest, GD_21, REQUEST_BASE_URL},
 };
-use serde::{Deserialize, Serialize, Serializer};
-use async_trait::async_trait;
-use crate::request::Executable;
+use crate::model::level::online_level::{Level, ListedLevel};
+use crate::response::{parse_download_gj_level_response, parse_get_gj_levels_response, ResponseError};
 
 pub const DOWNLOAD_LEVEL_ENDPOINT: &str = "downloadGJLevel22.php";
 pub const SEARCH_LEVEL_ENDPOINT: &str = "getGJLevels21.php";
@@ -88,6 +90,14 @@ impl<'a> LevelRequest<'a> {
             inc: true,
             extra: false,
         }
+    }
+
+    pub async fn get_response_body(&self) -> Result<String, Error> {
+        super::execute(&self, &self.to_url()).await
+    }
+
+    pub async fn into_robtop(self, response_body: &str) -> Result<Level, ResponseError> {
+        parse_download_gj_level_response(response_body)
     }
 }
 
@@ -589,6 +599,15 @@ impl<'a> LevelsRequest<'a> {
         self.search_filters = filters;
         self
     }
+
+    pub async fn get_response_body(&self) -> Result<String, Error> {
+        super::execute(&self, &self.to_url()).await
+    }
+
+    pub async fn into_robtop(self, response_body: &str) -> Result<Vec<ListedLevel>, ResponseError> {
+        parse_get_gj_levels_response(response_body)
+    }
+
 }
 
 #[async_trait]
@@ -616,7 +635,7 @@ impl Serialize for DemonFilter {
             DemonRating::Extreme => 5,
         };
 
-        serializer.serialize_i32(numerical_value)
+        serializer.serialize_i8(numerical_value)
     }
 }
 
@@ -638,7 +657,7 @@ impl Serialize for LengthFilter {
             LevelLength::ExtraLong => 4,
         };
 
-        serializer.serialize_i32(numerical_value)
+        serializer.serialize_u8(numerical_value)
     }
 }
 
@@ -664,7 +683,7 @@ impl Serialize for RatingFilter {
                                           * -2 means "search for any demon, regardless of difficulty" */
         };
 
-        serializer.serialize_i32(numerical_value)
+        serializer.serialize_i8(numerical_value)
     }
 }
 
