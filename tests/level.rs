@@ -12,17 +12,27 @@ use dash_rs::model::level::DemonRating::Extreme;
 use dash_rs::model::level::LevelRating::Demon;
 use dash_rs::model::level::Password::PasswordCopy;
 use dash_rs::request::level::{LevelRequest, LevelsRequest};
+use dash_rs::response::{parse_download_gj_level_response, parse_get_gj_levels_response};
+
+const CONTENT_TYPE: &str = "Content-Type";
+const URL_FORM_ENCODED: &str = "application/x-www-form-urlencoded";
 
 #[tokio::test]
 async fn download_gj_level_test() {
+    let client = reqwest::Client::new();
     let request = LevelRequest::new(76298358);
 
-    let response_body =  request.get_response_body()
+    let raw_response = client.post(request.to_url())
+        .body(request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
 
-    let level = request.into_robtop(&response_body)
-        .await
+    let level = parse_download_gj_level_response(&raw_response)
         .unwrap();
 
     println!("{:?}", &level);
@@ -35,17 +45,22 @@ async fn download_gj_level_test() {
 
 #[tokio::test]
 async fn get_gj_levels_test() {
+    let client = reqwest::Client::new();
     let request = LevelsRequest::default()
         .search("Spectrum Rave")
         .page(0);
 
-    let response_body =  request.get_response_body()
+    let raw_response = client.post(request.to_url())
+        .body(request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
 
-
-    let levels = request.into_robtop(&response_body)
-        .await
+    let levels = parse_get_gj_levels_response(&raw_response)
         .unwrap();
 
     let level = levels.get(0).unwrap();
@@ -67,22 +82,25 @@ async fn get_gj_levels_test() {
 
 #[tokio::test]
 async fn get_gj_levels_should_use_main_song_test() {
+    let client = reqwest::Client::new();
     let request = LevelsRequest::default()
         .search("The Nightmare")
         .page(0);
 
-    let response_body =  request.get_response_body()
+    let raw_response = client.post(request.to_url())
+        .body(request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
 
-
-    let levels = request.into_robtop(&response_body)
-        .await
+    let levels = parse_get_gj_levels_response(&raw_response)
         .unwrap();
 
     let level = levels.get(0).unwrap();
-
-    println!("{:?}", level);
 
     assert_eq!(level.level_id, 13519);
     assert_eq!(level.main_song.as_ref().unwrap().name, "Polargeist");

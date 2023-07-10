@@ -57,6 +57,10 @@
 use dash_rs::model::user::ModLevel;
 use dash_rs::request::account::LoginRequest;
 use dash_rs::request::user::UserRequest;
+use dash_rs::response::parse_get_gj_user_info_response;
+
+const CONTENT_TYPE: &str = "Content-Type";
+const URL_FORM_ENCODED: &str = "application/x-www-form-urlencoded";
 
 #[tokio::test]
 async fn test_get_user_profile_with_auth() {
@@ -64,25 +68,30 @@ async fn test_get_user_profile_with_auth() {
 
     let user_name = dotenv::var("GJ_ACCOUNT_USERNAME").unwrap();
     let password = dotenv::var("GJ_ACCOUNT_PASSWORD").unwrap();
+    let client = reqwest::Client::new();
 
-    let request = LoginRequest::default()
+    let login_request = LoginRequest::default()
         .user_name(&user_name)
         .password(&password);
 
-    let login_response = request.to_authenticated_user()
+    let login_response = login_request.to_authenticated_user()
         .await
         .unwrap();
 
     let request = UserRequest::with_authenticated_user(login_response, 57903);
 
-    let response_body = request.get_response_body()
+    let raw_response = client.post(request.to_url())
+        .body(request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
 
-    println!("{}", response_body);
-
-    let user = request.into_robtop(&response_body)
-        .await.unwrap();
+    let user = parse_get_gj_user_info_response(&raw_response)
+        .unwrap();
 
     println!("{:?}", user);
 
@@ -99,18 +108,21 @@ async fn test_get_user_profile_with_auth() {
 
 #[tokio::test]
 async fn test_get_user_profile_without_auth() {
+    let client = reqwest::Client::new();
     let request = UserRequest::new(57903);
 
-    let response_body = request.get_response_body()
+    let raw_response = client.post(request.to_url())
+        .body(request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
 
-    println!("{}", response_body);
-
-    let user = request.into_robtop(&response_body)
-        .await.unwrap();
-
-    println!("{:?}", user);
+    let user = parse_get_gj_user_info_response(&raw_response)
+        .unwrap();
 
     assert_eq!(
         user.name,

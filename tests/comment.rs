@@ -4,21 +4,31 @@ use dash_rs::{
         comment::{UploadCommentRequest, DeleteCommentRequest, CommentHistoryRequest, LevelCommentsRequest, ProfileCommentsRequest, SortMode},
     },
 };
+use dash_rs::response::{parse_get_gj_acccount_comments_response, parse_get_gj_comments_response};
+
+const CONTENT_TYPE: &str = "Content-Type";
+const URL_FORM_ENCODED: &str = "application/x-www-form-urlencoded";
 
 #[tokio::test]
 async fn get_level_comments() {
+    let client = reqwest::Client::new();
+
     let request = LevelCommentsRequest::new(76298358)
         .page(0)
         .limit(5)
         .most_recent();
 
-    let request_body = request.get_response_body()
+    let raw_response = client.post(request.to_url())
+        .body(request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
 
-    let level_comments = request.into_robtop(&request_body)
-        .await
-        .unwrap();
+    let level_comments = parse_get_gj_comments_response(&raw_response).unwrap();
 
     assert_eq!(level_comments.len(), 5);
 }
@@ -26,18 +36,25 @@ async fn get_level_comments() {
 
 #[tokio::test]
 async fn get_profile_comments() {
+    let client = reqwest::Client::new();
+
     let request = ProfileCommentsRequest::new(57903)
         .page(0);
 
-    let response_body = request.get_response_body()
+    let raw_response = client.post(request.to_url())
+        .body(request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
 
-    let profile_comments = request.into_robtop(&response_body)
-        .await
+    let profile_comments = parse_get_gj_acccount_comments_response(&raw_response)
         .unwrap();
 
-    assert_eq!(profile_comments.len(), 2);
+    assert_eq!(profile_comments.len(), 3);
 }
 
 #[tokio::test]
@@ -46,24 +63,31 @@ async fn upload_comment() {
 
     let user_name = dotenv::var("GJ_ACCOUNT_USERNAME").unwrap();
     let password = dotenv::var("GJ_ACCOUNT_PASSWORD").unwrap();
+    let client = reqwest::Client::new();
 
-    let request = LoginRequest::default()
+    let login_request = LoginRequest::default()
         .user_name(&user_name)
         .password(&password);
 
-    let login_response = request.to_authenticated_user()
+    let login_response = login_request.to_authenticated_user()
         .await
         .unwrap();
 
-    let mut comment_upload_request = UploadCommentRequest::new(login_response, 76298358)
+    let comment_upload_request = UploadCommentRequest::new(login_response, 76298358)
         .comment("More tests still ignore me")
         .percent(69);
-    let comment_upload_response = comment_upload_request
-        .get_response_body()
+
+    let response = client.post(comment_upload_request.to_url())
+        .body(comment_upload_request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
 
-    assert!(!comment_upload_response.eq("-1"))
+    assert!(!response.eq("-1"))
 }
 
 #[tokio::test]
@@ -72,6 +96,7 @@ async fn delete_comment() {
 
     let user_name = dotenv::var("GJ_ACCOUNT_USERNAME").unwrap();
     let password = dotenv::var("GJ_ACCOUNT_PASSWORD").unwrap();
+    let client = reqwest::Client::new();
 
     let request = LoginRequest::default()
         .user_name(&user_name)
@@ -86,19 +111,29 @@ async fn delete_comment() {
         .limit(1)
         .page(0);
 
-    let comment_history_response = comment_history_request.get_response_body()
+    let comment_history_response = client.post(comment_history_request.to_url())
+        .body(comment_history_request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
-
-    let comment = comment_history_request.into_robtop(&comment_history_response)
-        .await
+    let comment_history_response = parse_get_gj_comments_response(&comment_history_response)
         .unwrap();
 
-    let comment_id = comment.get(0).unwrap().comment_id;
+    let comment_id = comment_history_response.get(0).unwrap().comment_id;
 
     let comment_delete_request = DeleteCommentRequest::new(login_response, 76298358, comment_id);
 
-    let comment_delete_response = comment_delete_request.get_response_body()
+    let comment_delete_response = client.post(comment_delete_request.to_url())
+        .body(comment_delete_request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
         .await
         .unwrap();
 
