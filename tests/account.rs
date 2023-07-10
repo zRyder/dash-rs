@@ -12,5 +12,13 @@ async fn login_gj_account_test() {
         .password(&password);
 
     let result = request.to_authenticated_user().await.unwrap();
-    println!("{:?}", result);
+
+    assert_eq!(
+        result.user_name,
+        "Ryder"
+    );
+    assert_eq!(
+        result.account_id,
+        "57903"
+    );
 }
