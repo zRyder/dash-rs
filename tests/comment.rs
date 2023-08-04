@@ -27,6 +27,7 @@ async fn get_level_comments() {
         .text()
         .await
         .unwrap();
+    println!("{}", &raw_response);
 
     let level_comments = parse_get_gj_comments_response(&raw_response).unwrap();
 
@@ -51,10 +52,33 @@ async fn get_profile_comments() {
         .await
         .unwrap();
 
+
     let profile_comments = parse_get_gj_acccount_comments_response(&raw_response)
         .unwrap();
 
     assert_eq!(profile_comments.len(), 3);
+}
+#[tokio::test]
+async fn get_comment_history() {
+    let client = reqwest::Client::new();
+
+    let comment_history_request = CommentHistoryRequest::new(3713125)
+        .sort_mode(SortMode::Recent)
+        .count(1)
+        .page(0);
+
+    let comment_history_response = client.post(comment_history_request.to_url())
+        .body(comment_history_request.to_string())
+        .header(CONTENT_TYPE, URL_FORM_ENCODED)
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+
+    let comment_history_response = parse_get_gj_comments_response(&comment_history_response)
+        .unwrap();
 }
 
 #[tokio::test]
@@ -108,7 +132,7 @@ async fn delete_comment() {
 
     let comment_history_request = CommentHistoryRequest::new(3713125)
         .sort_mode(SortMode::Recent)
-        .limit(1)
+        .count(1)
         .page(0);
 
     let comment_history_response = client.post(comment_history_request.to_url())
@@ -120,6 +144,7 @@ async fn delete_comment() {
         .text()
         .await
         .unwrap();
+
     let comment_history_response = parse_get_gj_comments_response(&comment_history_response)
         .unwrap();
 

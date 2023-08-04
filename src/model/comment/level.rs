@@ -14,6 +14,12 @@ pub struct LevelComment<'a> {
     /// object
     pub user: Option<CommentUser<'a>>,
 
+    /// The id of the the level that this [`CommentEntry`] was posted to
+    ///
+    /// ## GD Internals
+    /// This value is provided at index `1`
+    pub level_id: Option<u64>,
+
     /// The actual content of the [`LevelComment`] made.
     ///
     /// ## GD Internals
@@ -181,6 +187,8 @@ mod internal {
         use std::{borrow::{Cow, Borrow}, io::Write};
         #[derive(Serialize, Deserialize)]
         struct InternalLevelComment<'src, 'bor> {
+            #[serde(rename = "1")]
+            index_1: Option<u64>,
             #[serde(rename = "2")]
             index_2: Option<RefThunk<'src, 'bor, Base64Decoded<'src>>>,
             #[serde(rename = "3")]
@@ -210,6 +218,7 @@ mod internal {
                         Some (RefThunk::Unprocessed(unproc)) =>
                             Some(Thunk::Unprocessed(unproc)),
                         _ => unreachable!()},
+                    level_id: internal.index_1,
                     user_id: internal.index_3,
                     likes: internal.index_4,
                     comment_id: internal.index_6,
@@ -230,6 +239,7 @@ mod internal {
 
             fn write_robtop_data<W: Write>(&self, writer: W) -> Result<(), SerError> {
                 let internal = InternalLevelComment {
+                    index_1: self.level_id,
                     index_2: self.content.as_ref().map(|t| t.as_ref_thunk()),
                     index_3: self.user_id,
                     index_4: self.likes,

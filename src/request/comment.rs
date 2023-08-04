@@ -196,8 +196,7 @@ pub struct CommentHistoryRequest<'a> {
     /// This field is called `page` in the boomlings API
     pub page: u32,
 
-    /// The number of comments to retrieve. The limit of this is 100, even if more than 100 is passed in
-    ///
+    /// The amount of comments to retrieve. Note that while in-game this can only be set to 20 or 40 however, a max of 100 comments can be returned
     /// ## GD Internals:
     /// This field is called `count` in the boomlings API
     pub count: u32,
@@ -278,6 +277,7 @@ impl<'a> UploadCommentRequest<'a> {
     pub fn to_url(&self) -> String {
         format!("{}{}", REQUEST_BASE_URL, UPLOAD_COMMENT_ENDPOINT)
     }
+
 
     pub fn new(authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
         Self::with_base(GD_21, authenticated_user, level_id)
@@ -399,17 +399,17 @@ mod tests {
         let request = CommentHistoryRequest::new(159782398)
             .sort_mode(SortMode::Recent)
             .page(0)
-            .limit(2);
+            .count(2);
 
         assert_eq!(
             request.to_string(),
-            "gameVersion=21&binaryVersion=33&secret=Wmfd2893gb7&total=0&page=0&mode=0&userID=159782398&count=2"
+            "gameVersion=21&binaryVersion=33&secret=Wmfd2893gb7&total=0&page=0&count=2&mode=0&userID=159782398"
         );
     }
 
     #[test]
     fn serialize_upload_comment() {
-        let mut binding = UploadCommentRequest::new(TEST_AUTHENTICATED_USER, 85179632)
+        let request = UploadCommentRequest::new(TEST_AUTHENTICATED_USER, 85179632)
             .comment("This is a test comment")
             .percent(56);
 
