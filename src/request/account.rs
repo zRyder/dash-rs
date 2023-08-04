@@ -1,15 +1,18 @@
 use std::fmt;
 use std::fmt::Formatter;
+use reqwest::{Error, Response};
 use serde::{Serialize};
 
 use crate::{
     util,
     request::{REQUEST_BASE_URL}
 };
-use crate::request::{AuthenticatedUser, Executable};
+use crate::request::{AuthenticatedUser};
 
 pub const ACCOUNT_LOGIN_ENPOINT: &str = "accounts/loginGJAccount.php";
 pub const XOR_KEY: &str = "37526";
+pub const CONTENT_TYPE: &str = "Content-Type";
+pub const URL_FORM_ENCODED: &str = "application/x-www-form-urlencoded";
 
 #[derive(Debug, Clone, Serialize, Hash)]
 pub struct LoginRequest<'a> {
@@ -57,6 +60,26 @@ impl<'a> LoginRequest<'a> {
         }
     }
 
+    fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, ACCOUNT_LOGIN_ENPOINT)
+    }
+
+    fn to_string(&self) -> String {
+        super::to_string(&self)
+    }
+
+    async fn execute(&self) -> Result<Response, Error> {
+        let reqwest_client = reqwest::Client::new();
+        println!("{:?}", self.to_string());
+        println!("{:?}", self.to_url());
+        reqwest_client
+            .post(self.to_url())
+            .body(self.to_string())
+            .header(CONTENT_TYPE, URL_FORM_ENCODED)
+            .send()
+            .await
+    }
+
     pub async fn to_authenticated_user(&self) -> Result<AuthenticatedUser,  AuthenticationError> {
         match self.execute().await {
             Ok(login_result) => {
@@ -78,12 +101,6 @@ impl<'a> LoginRequest<'a> {
     }
 }
 
-impl<'a> Executable for LoginRequest<'a> {
-    fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, ACCOUNT_LOGIN_ENPOINT)
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct AuthenticationError(String);
 
@@ -92,12 +109,6 @@ impl std::error::Error for AuthenticationError {}
 impl fmt::Display for AuthenticationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
-    }
-}
-
-impl ToString for LoginRequest<'_> {
-    fn to_string(&self) -> String {
-        super::to_string(self)
     }
 }
 

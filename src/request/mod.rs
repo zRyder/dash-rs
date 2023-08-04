@@ -13,9 +13,7 @@ use crate::{
     serde::RequestSerializer,
 };
 use serde::{Deserialize, Serialize};
-use async_trait::async_trait;
-use reqwest::{Error, Response};
-use crate::response::ResponseError;
+use reqwest::Error;
 
 macro_rules! const_setter {
     ($name: ident, $field: ident, $t: ty) => {
@@ -165,42 +163,4 @@ async fn execute<S: Serialize>(request: S, url: &str) -> Result<String, Error> {
         .await?
         .text()
         .await
-}
-
-#[async_trait]
-trait Executable {
-    fn to_url(&self) -> String;
-
-    fn to_string(&self) -> String
-    where
-        Self: Serialize
-    {
-        to_string(&self)
-    }
-
-    async fn execute(&self) -> Result<Response, Error>
-    where
-        Self: Serialize
-    {
-        let reqwest_client = reqwest::Client::new();
-        println!("{:?}", self.to_string());
-        println!("{:?}", self.to_url());
-        reqwest_client
-            .post(self.to_url())
-            .body(self.to_string())
-            .header(CONTENT_TYPE, URL_FORM_ENCODED)
-            .send()
-            .await
-    }
-
-    async fn get_response_body(&self, response: Response) -> Result<String, Error> {
-        response.text().await
-    }
-}
-
-#[async_trait]
-pub trait ToRobtop {
-    type RobtopModel;
-
-    async fn into_robtop(&self, response_body: &str) -> Result<Vec<Self::RobtopModel>, ResponseError>;
 }

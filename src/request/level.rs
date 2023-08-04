@@ -1,15 +1,11 @@
-use async_trait::async_trait;
-use reqwest::Error;
 use serde::{Deserialize, Serialize, Serializer};
 use crate::{
-    request::{BaseRequest, GD_21, REQUEST_BASE_URL, Executable},
+    request::{BaseRequest, GD_21, REQUEST_BASE_URL},
     model::{
         level::{DemonRating, LevelLength, LevelRating},
         song::MainSong,
     },
 };
-use crate::model::level::online_level::{Level, ListedLevel};
-use crate::response::{parse_download_gj_level_response, parse_get_gj_levels_response, ResponseError};
 
 pub const DOWNLOAD_LEVEL_ENDPOINT: &str = "downloadGJLevel22.php";
 pub const SEARCH_LEVEL_ENDPOINT: &str = "getGJLevels21.php";
@@ -92,18 +88,12 @@ impl<'a> LevelRequest<'a> {
         }
     }
 
-    pub async fn get_response_body(&self) -> Result<String, Error> {
-        super::execute(&self, &self.to_url()).await
-    }
-
-    pub async fn into_robtop(self, response_body: &str) -> Result<Level, ResponseError> {
-        parse_download_gj_level_response(response_body)
-    }
-}
-
-impl Executable for LevelRequest<'_> {
-    fn to_url(&self) -> String {
+    pub fn to_url(&self) -> String {
         format!("{}{}", REQUEST_BASE_URL, DOWNLOAD_LEVEL_ENDPOINT)
+    }
+
+    pub fn to_string(&self) -> String {
+        super::to_string(&self)
     }
 }
 
@@ -600,21 +590,14 @@ impl<'a> LevelsRequest<'a> {
         self
     }
 
-    pub async fn get_response_body(&self) -> Result<String, Error> {
-        super::execute(&self, &self.to_url()).await
-    }
-
-    pub async fn into_robtop(self, response_body: &str) -> Result<Vec<ListedLevel>, ResponseError> {
-        parse_get_gj_levels_response(response_body)
-    }
-
-}
-
-#[async_trait]
-impl Executable for LevelsRequest<'_>{
-    fn to_url(&self) -> String {
+    pub fn to_url(&self) -> String {
         format!("{}{}", REQUEST_BASE_URL, SEARCH_LEVEL_ENDPOINT)
     }
+
+    pub fn to_string(&self) -> String {
+        super::to_string(&self)
+    }
+
 }
 
 /// Newtype struct for [`DemonRating`] to implement robtop's serialization for requests on
@@ -693,7 +676,6 @@ mod tests {
         model::level::LevelLength,
         request::level::{CompletionFilter, LevelRequestType, LevelsRequest, SearchFilters},
     };
-    use crate::request::Executable;
     use crate::request::level::LevelRequest;
 
     #[tokio::test]
@@ -708,7 +690,6 @@ mod tests {
                         18018958, 21373201, 22057275, 22488444, 22008823, 23144971, 17382902, 87600, 22031889, 22390740, 22243264, 21923305,
                     ]),
                 ));
-        println!("{:?}", request.execute().await.unwrap().text().await.unwrap());
 
         assert_eq!(
             request.to_string(),

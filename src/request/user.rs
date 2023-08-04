@@ -1,14 +1,10 @@
 //! Module containing request definitions for retrieving users
 
-use reqwest::Error;
 use crate::{
     request::{BaseRequest, GD_21, REQUEST_BASE_URL},
 };
 use serde::Serialize;
-use crate::model::user::profile::Profile;
-use crate::model::user::searched::SearchedUser;
 use crate::request::AuthenticatedUser;
-use crate::response::{parse_get_gj_user_info_response, parse_get_gj_users_response, ResponseError};
 
 pub const GET_USER_ENDPOINT: &str = "getGJUserInfo20.php";
 pub const SEARCH_USER_ENDPOINT: &str = "getGJUsers20.php";
@@ -35,10 +31,6 @@ pub struct UserRequest<'a> {
 
 impl<'a> UserRequest<'a> {
 
-    fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, GET_USER_ENDPOINT)
-    }
-
     pub const fn new(user_id: u64) -> UserRequest<'a> {
         UserRequest {
             base: GD_21,
@@ -55,13 +47,14 @@ impl<'a> UserRequest<'a> {
         }
     }
 
-    pub async fn get_response_body(&self) -> Result<String, Error> {
-        super::execute(&self, &self.to_url()).await
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, GET_USER_ENDPOINT)
     }
 
-    pub async fn into_robtop(self, response_body: &str) -> Result<Profile, ResponseError> {
-        parse_get_gj_user_info_response(response_body)
+    pub fn to_string(&self) -> String {
+        super::to_string(&self)
     }
+
 }
 
 #[derive(Debug, Clone, Serialize, Copy, PartialEq, Eq)]
@@ -96,10 +89,6 @@ pub struct UserSearchRequest<'a> {
 
 impl<'a> UserSearchRequest<'a> {
 
-    fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, SEARCH_USER_ENDPOINT)
-    }
-
     pub const fn new(search_string: &'a str) -> Self {
         UserSearchRequest {
             base: GD_21,
@@ -109,26 +98,35 @@ impl<'a> UserSearchRequest<'a> {
         }
     }
 
-    pub async fn get_response_body(&self) -> Result<String, Error> {
-        super::execute(&self, &self.to_url()).await
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, SEARCH_USER_ENDPOINT)
     }
 
-    pub async fn into_robtop(self, response_body: &str) -> Result<SearchedUser, ResponseError> {
-        parse_get_gj_users_response(response_body)
+    pub fn to_string(&self) -> String {
+        super::to_string(&self)
     }
+
 }
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+    use crate::request::AuthenticatedUser;
     use crate::request::user::{UserRequest, UserSearchRequest};
+
+    const TEST_AUTHENTICATED_USER: AuthenticatedUser = AuthenticatedUser {
+        user_name: "TestUser",
+        account_id: 472634,
+        password_hash: Cow::Borrowed("VGhpc0lzQUZha2VQYXNzd29yZA==")
+    };
 
     #[test]
     fn serialize_user_request() {
-        let request = UserRequest::new(57903);
+        let request = UserRequest::with_authenticated_user(TEST_AUTHENTICATED_USER, 57903);
 
         assert_eq!(
-            super::super::to_string(request),
-            "gameVersion=21&binaryVersion=33&secret=Wmfd2893gb7&targetAccountID=57903"
+            request.to_string(),
+            "gameVersion=21&binaryVersion=33&secret=Wmfd2893gb7&userName=TestUser&accountID=472634&gjp=VGhpc0lzQUZha2VQYXNzd29yZA==&targetAccountID=57903"
         );
     }
 
@@ -137,7 +135,7 @@ mod tests {
         let request = UserSearchRequest::new("Ryder");
 
         assert_eq!(
-            super::super::to_string(request),
+            request.to_string(),
             "gameVersion=21&binaryVersion=33&secret=Wmfd2893gb7&total=0&page=0&str=Ryder"
         );
     }
