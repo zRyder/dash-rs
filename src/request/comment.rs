@@ -215,16 +215,9 @@ pub struct CommentHistoryRequest<'a> {
     /// This field is called `userID` in the boomlings API.
     #[serde(rename = "userID")]
     pub player_id: u64,
-
-    /// The amount of comments to retrieve. Note that while in-game this can only be set to 20 or 40 however, a max of 100 comments can be returned
-    /// ## GD Internals:
-    /// This field is called `count` in the boomlings API
-    #[serde(rename = "count")]
-    pub limit: u32,
 }
 
 impl<'a> CommentHistoryRequest<'a> {
-    const_setter!(limit: u32);
     const_setter!(page: u32);
     const_setter!(count: u32);
 
@@ -236,7 +229,6 @@ impl<'a> CommentHistoryRequest<'a> {
             count: 10,
             total: 0,
             sort_mode: SortMode::Recent,
-            limit: 20,
         }
     }
 
