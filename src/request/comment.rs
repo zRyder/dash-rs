@@ -196,6 +196,12 @@ pub struct CommentHistoryRequest<'a> {
     /// This field is called `page` in the boomlings API
     pub page: u32,
 
+    /// The number of comments to retrieve. The limit of this is 100, even if more than 100 is passed in
+    ///
+    /// ## GD Internals:
+    /// This field is called `count` in the boomlings API
+    pub count: u32,
+
     /// What to sort by comments by
     ///
     /// ## GD Internals:
