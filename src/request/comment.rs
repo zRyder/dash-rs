@@ -226,12 +226,14 @@ pub struct CommentHistoryRequest<'a> {
 impl<'a> CommentHistoryRequest<'a> {
     const_setter!(limit: u32);
     const_setter!(page: u32);
+    const_setter!(count: u32);
 
     pub const fn with_base(base: BaseRequest<'a>, player: u64) -> Self {
         CommentHistoryRequest {
             player_id: player,
             base,
             page: 0,
+            count: 10,
             total: 0,
             sort_mode: SortMode::Recent,
             limit: 20,
