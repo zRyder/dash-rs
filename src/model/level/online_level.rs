@@ -256,10 +256,12 @@ mod internal {
             index_28: Option<&'src str>,
             #[serde(rename = "29")]
             index_29: Option<&'src str>,
+            // #[serde(deserialize_with = "crate::util::negative_or_zero_u64_to_none")]
             #[serde(rename = "30")]
             index_30: Option<u64>,
             #[serde(rename = "31")]
             index_31: bool,
+            // #[serde(deserialize_with = "crate::util::negative_or_zero_u64_to_none")]
             #[serde(rename = "35")]
             index_35: Option<u64>,
             #[serde(rename = "36")]
@@ -272,6 +274,7 @@ mod internal {
             index_39: Option<u8>,
             #[serde(rename = "40")]
             index_40: Option<bool>,
+            // #[serde(deserialize_with = "crate::util::negative_or_zero_u32_to_none")]
             #[serde(rename = "41")]
             index_41: Option<u32>,
             #[serde(rename = "42")]
@@ -282,8 +285,10 @@ mod internal {
             index_44: Option<bool>,
             #[serde(rename = "45")]
             index_45: Option<u16>,
+            // #[serde(deserialize_with = "crate::util::negative_or_zero_u64_to_none")]
             #[serde(rename = "46")]
             index_46: Option<u64>,
+            // #[serde(deserialize_with = "crate::util::negative_or_zero_u64_to_none")]
             #[serde(rename = "47")]
             index_47: Option<u64>,
         }
@@ -379,15 +384,30 @@ mod internal {
                     index_27: None,
                     index_28: None,
                     index_29: None,
-                    index_30: self.copy_of,
+                    index_30: match self.copy_of {
+                        Some(0) => None,
+                        Some(id) => Some(id),
+                        None => None
+                    },
                     index_31: self.is_two_player,
-                    index_35: self.custom_song,
+                    index_35: match self.custom_song {
+                        Some(0) => None,
+                        Some(id) => Some(id),
+                        None => None
+                    },
                     index_36: None,
                     index_37: self.coin_amount,
                     index_38: self.has_verified_coins,
-                    index_39: self.stars_requested,
+                    index_39: match self.stars_requested {
+                        Some(0) => None,
+                        Some(id) => Some(id),
+                        None => None
+                    },
                     index_40: None,
-                    index_41: self.daily_number,
+                    index_41: match self.daily_number {
+                        Some(daily_number) => Some(daily_number),
+                        None => None
+                    },
                     index_42: self.is_epic,
                     index_43: match self.difficulty {
                         LevelRating::Demon(DemonRating::Easy) => 3,
@@ -398,7 +418,11 @@ mod internal {
                         _ => 5, // this seems to be the default for non-demons
                     },
                     index_44: self.in_gauntlet,
-                    index_45: self.object_count,
+                    index_45: match self.object_count {
+                        Some(0) => None,
+                        Some(id) => Some(id),
+                        None => None
+                    },
                     index_46: None,
                     index_47: None
                 };

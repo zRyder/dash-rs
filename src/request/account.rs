@@ -70,8 +70,6 @@ impl<'a> LoginRequest<'a> {
 
     async fn execute(&self) -> Result<Response, Error> {
         let reqwest_client = reqwest::Client::new();
-        println!("{:?}", self.to_string());
-        println!("{:?}", self.to_url());
         reqwest_client
             .post(self.to_url())
             .body(self.to_string())

@@ -19,6 +19,6 @@ async fn login_gj_account_test() {
     );
     assert_eq!(
         result.account_id,
-        "57903"
+        57903
     );
 }

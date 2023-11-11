@@ -62,7 +62,7 @@ async fn get_profile_comments() {
 async fn get_comment_history() {
     let client = reqwest::Client::new();
 
-    let comment_history_request = CommentHistoryRequest::new(3713125)
+    let comment_history_request = CommentHistoryRequest::new(17577805)
         .sort_mode(SortMode::Recent)
         .count(1)
         .page(0);
@@ -79,6 +79,7 @@ async fn get_comment_history() {
 
     let comment_history_response = parse_get_gj_comments_response(&comment_history_response)
         .unwrap();
+    println!("{:?}", &comment_history_response)
 }
 
 #[tokio::test]
