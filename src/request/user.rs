@@ -24,7 +24,7 @@ pub struct UserRequest<'a> {
     /// The **account ID** (_not_ user ID) of the users whose data to retrieve.
     ///
     /// ## GD Internals:
-    /// This field is called `targetAccountID` in the boomlings API
+    /// This field is called `targetAccountID` in the Boomlings API
     #[serde(rename = "targetAccountID")]
     pub user: u64,
 }
@@ -65,7 +65,7 @@ pub struct UserSearchRequest<'a> {
     /// Unknown, probably related to pagination
     ///
     /// ## GD Internals:
-    /// This field is called `total` in the boomlings API
+    /// This field is called `total` in the Boomlings API
     pub total: u32,
 
     /// The page of users to retrieve
@@ -76,13 +76,13 @@ pub struct UserSearchRequest<'a> {
     /// parameters useless.
     ///
     /// ## GD Internals:
-    /// This field is called `page` in the boomlings API
+    /// This field is called `page` in the Boomlings API
     pub page: u32,
 
     /// The name of the user being searched for
     ///
     /// ## GD Internals:
-    /// This field is called `str` in the boomlings API
+    /// This field is called `str` in the Boomlings API
     #[serde(rename = "str")]
     pub search_string: &'a str,
 }

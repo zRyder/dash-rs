@@ -1,6 +1,5 @@
 #![forbid(unsafe_code)]
 #![deny(
-    const_err,
     illegal_floating_point_literal_pattern,
     late_bound_lifetime_arguments,
     non_camel_case_types,

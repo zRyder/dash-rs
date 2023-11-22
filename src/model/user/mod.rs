@@ -91,15 +91,15 @@ impl From<IconType> for u8 {
 pub enum MessageState {
 
     /// Messages are open to all users
-    /// This is provided by value 0 by boomlings response for messageState
+    /// This is provided by value 0 by Boomlings response for messageState
     Anyone,
 
     /// Messages are only open to friends
-    /// This is provided by value 1 by boomlings response for messageState
+    /// This is provided by value 1 by Boomlings response for messageState
     FriendsOnly,
 
     /// Messages cannot be sent to this user
-    /// This is provided by value 2 by boomlings response for messageState
+    /// This is provided by value 2 by Boomlings response for messageState
     NoOne,
 
     /// Unknown or invalid value
@@ -132,10 +132,10 @@ impl From<u8> for MessageState {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FriendsState {
 
-    /// Friend requests are open to all users, this is provided by value 0 by boomlings response for friendsState
+    /// Friend requests are open to all users, this is provided by value 0 by Boomlings response for friendsState
     Anyone,
 
-    /// Friend requests cannot be sent to this user, this is provided by value 1 by boomlings response for friendsState
+    /// Friend requests cannot be sent to this user, this is provided by value 1 by Boomlings response for friendsState
     NoOne,
 
     /// Unknown or invalid value
@@ -167,19 +167,19 @@ impl From<u8> for FriendsState {
 pub enum FriendState {
 
     /// The [`AuthenticatedUser`] has not sent a friend request to this profile
-    /// This is provided by value 0 by boomlings response for friendsState
+    /// This is provided by value 0 by Boomlings response for friendsState
     NoRequest,
 
     /// The [`AuthenticatedUser`] is already friends with this profile
-    /// This is provided by value 1 by boomlings response for friendsState
+    /// This is provided by value 1 by Boomlings response for friendsState
     AlreadyFriends,
 
     /// The [`AuthenticatedUser`] has sent a request to this profile but the profile has not responded
-    /// This is provided by value 3 by boomlings response for friendsState
+    /// This is provided by value 3 by Boomlings response for friendsState
     RequestPendingByProfile,
 
     /// The profile has sent a request to the [`AuthenticatedUser`] but the [`AuthenticatedUser`] has not responded
-    /// This is provided by value 4 by boomlings response for friendsState
+    /// This is provided by value 4 by Boomlings response for friendsState
     RequestPendingByUser,
 
     /// Unknown or invalid value
@@ -215,15 +215,15 @@ impl From<u8> for FriendState {
 pub enum CommentHistoryState {
 
     /// Messages are open to all users
-    /// This is provided by value 0 by boomlings response for messageState
+    /// This is provided by value 0 by Boomlings response for messageState
     Anyone,
 
     /// Messages are only open to friends
-    /// This is provided by value 1 by boomlings response for messageState
+    /// This is provided by value 1 by Boomlings response for messageState
     FriendsOnly,
 
     /// Messages cannot be sent to this user
-    /// This is provided by value 2 by boomlings response for messageState
+    /// This is provided by value 2 by Boomlings response for messageState
     NoOne,
 
     /// Unknown or invalid value
@@ -258,7 +258,7 @@ pub enum Color {
     /// A color whose index was known to dash-rs which could be converted to RGB values
     Known(u8, u8, u8),
 
-    /// The index of some unknown colors. This variant will be constructed if robtop ever adds more
+    /// The index of some unknown colors. This variant will be constructed if RobTop ever adds more
     /// colors and while dash-rs hasn't updated yet
     Unknown(u8),
 }
