@@ -13,7 +13,6 @@ use crate::{
     serde::RequestSerializer,
 };
 use serde::{Deserialize, Serialize};
-use reqwest::Error;
 
 macro_rules! const_setter {
     ($name: ident, $field: ident, $t: ty) => {
@@ -160,18 +159,4 @@ pub(crate) fn to_string<S: Serialize>(request: S) -> String {
     request.serialize(&mut serializer).unwrap();
 
     String::from_utf8(output).unwrap()
-}
-
-async fn execute<S: Serialize>(request: S, url: &str) -> Result<String, Error> {
-    let reqwest_client = reqwest::Client::new();
-    println!("{:?}", to_string(&request));
-    println!("{:?}", url);
-    reqwest_client
-        .post(url)
-        .body(to_string(request))
-        .header(CONTENT_TYPE, URL_FORM_ENCODED)
-        .send()
-        .await?
-        .text()
-        .await
 }

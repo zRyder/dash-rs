@@ -19,7 +19,7 @@ pub struct UserRequest<'a> {
     pub base: BaseRequest<'a>,
 
     /// The authenticated user data
-    pub authenticated_user: Option<AuthenticatedUser<'a>>,
+    authenticated_user: Option<AuthenticatedUser<'a>>,
 
     /// The **account ID** (_not_ user ID) of the users whose data to retrieve.
     ///

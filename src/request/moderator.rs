@@ -9,7 +9,7 @@ pub struct SuggestStarsRequest<'a> {
     pub base: BaseRequest<'a>,
 
     /// The authenticated Moderator data
-    pub authenticated_user: AuthenticatedUser<'a>,
+    authenticated_user: AuthenticatedUser<'a>,
 
     /// The id of the level the Moderator is suggesting
     /// ## GD Internals:

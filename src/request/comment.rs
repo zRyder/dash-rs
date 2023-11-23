@@ -6,7 +6,6 @@ use crate::{
     util
 };
 use serde::Serialize;
-use reqwest::Error;
 
 pub const LEVEL_COMMENTS_ENDPOINT: &str = "getGJComments21.php";
 pub const PROFILE_COMMENT_ENDPOINT: &str = "getGJAccountComments20.php";
@@ -90,10 +89,6 @@ impl<'a> LevelCommentsRequest<'a> {
 
     const_setter!(page: u32);
 
-    pub fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, LEVEL_COMMENTS_ENDPOINT)
-    }
-
     pub const fn new(level: u64) -> Self {
         Self::with_base(GD_21, level)
     }
@@ -117,6 +112,10 @@ impl<'a> LevelCommentsRequest<'a> {
     pub const fn most_recent(mut self) -> Self {
         self.sort_mode = SortMode::Recent;
         self
+    }
+
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, LEVEL_COMMENTS_ENDPOINT)
     }
 
     pub fn to_string(&self) -> String {
@@ -156,21 +155,21 @@ impl<'a> ProfileCommentsRequest<'a> {
 
     const_setter!(account_id: u64);
 
-    pub fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, PROFILE_COMMENT_ENDPOINT)
-    }
-
     pub const fn new(account: u64) -> Self {
         Self::with_base(GD_21, account)
     }
 
-    pub const fn with_base(base: BaseRequest<'a>, account: u64) -> Self {
+    const fn with_base(base: BaseRequest<'a>, account: u64) -> Self {
         ProfileCommentsRequest {
             account_id: account,
             base,
             page: 0,
             total: 0,
         }
+    }
+
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, PROFILE_COMMENT_ENDPOINT)
     }
 
     pub fn to_string(&self) -> String {
@@ -218,6 +217,7 @@ pub struct CommentHistoryRequest<'a> {
 
 impl<'a> CommentHistoryRequest<'a> {
     const_setter!(page: u32);
+
     const_setter!(count: u32);
 
     pub const fn with_base(base: BaseRequest<'a>, player: u64) -> Self {
@@ -255,7 +255,7 @@ pub struct UploadCommentRequest<'a> {
     pub base: BaseRequest<'a>,
 
     /// The authenticated user data
-    pub authenticated_user: AuthenticatedUser<'a>,
+    authenticated_user: AuthenticatedUser<'a>,
 
     /// The content of the comment, this value will be base64 url encoded
     pub comment: Cow<'a, str>,
@@ -272,6 +272,7 @@ pub struct UploadCommentRequest<'a> {
 
 impl<'a> UploadCommentRequest<'a> {
     const_setter!(level_id: u64);
+
     const_setter!(percent: u8);
 
     pub fn to_url(&self) -> String {
@@ -283,7 +284,7 @@ impl<'a> UploadCommentRequest<'a> {
         Self::with_base(GD_21, authenticated_user, level_id)
     }
 
-    pub const fn with_base(base: BaseRequest<'a>, authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
+    const fn with_base(base: BaseRequest<'a>, authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
         UploadCommentRequest{
             base,
             authenticated_user,
@@ -317,7 +318,7 @@ pub struct DeleteCommentRequest<'a> {
     pub base: BaseRequest<'a>,
 
     /// The authenticated user data
-    pub authenticated_user: AuthenticatedUser<'a>,
+    authenticated_user: AuthenticatedUser<'a>,
 
     /// The id of the level comment to delete
     /// ## GD Internals:
@@ -334,11 +335,8 @@ pub struct DeleteCommentRequest<'a> {
 
 impl<'a> DeleteCommentRequest<'a> {
     const_setter!(comment_id: u64);
-    const_setter!(level_id: u64);
 
-    pub fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, DELETE_COMMENT_ENDPOINT)
-    }
+    const_setter!(level_id: u64);
 
     pub fn new(authenticated_user: AuthenticatedUser<'a>, level_id: u64, comment_id: u64) -> Self {
         Self::with_base(GD_21, authenticated_user, level_id, comment_id)
@@ -353,12 +351,12 @@ impl<'a> DeleteCommentRequest<'a> {
         }
     }
 
-    pub fn to_string(&self) -> String {
-        super::to_string(&self)
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, DELETE_COMMENT_ENDPOINT)
     }
 
-    pub async fn get_response_body(&self) -> Result<String, Error> {
-        super::execute(&self, &self.to_url()).await
+    pub fn to_string(&self) -> String {
+        super::to_string(&self)
     }
 }
 
