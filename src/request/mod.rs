@@ -1,9 +1,9 @@
-//! Module containing all structs modelling requests to the boomlings APIs.
+//! Module containing all structs modelling requests to the Boomlings APIs.
 //!
 //! These directly implement (de)serialization into RobTop's data format, unlike models where
 //! RobTop's eccentricities are hidden. This is since directly re-using these structs outside of
-//! making/proxying requests for the boomlings servers seems rather useless to me, as they already
-//! contain a lot of boomlings-specific fields.
+//! making/proxying requests for the Boomlings servers seems rather useless to me, as they already
+//! contain a lot of Boomlings-specific fields.
 
 use std::borrow::Cow;
 use crate::{
@@ -13,7 +13,6 @@ use crate::{
     serde::RequestSerializer,
 };
 use serde::{Deserialize, Serialize};
-use reqwest::Error;
 
 macro_rules! const_setter {
     ($name: ident, $field: ident, $t: ty) => {
@@ -51,9 +50,14 @@ pub mod comment;
 pub mod level;
 pub mod user;
 pub mod account;
+pub mod moderator;
 
 pub const REQUEST_BASE_URL: &str = "http://www.boomlings.com/database/";
+
+pub const SECRET: &str = "Wmfd2893gb7";
 pub const ACCOUNT_SECRET: &str = "Wmfv3899gc9";
+
+pub const MODERATOR_SECRET: &str = "Wmfp3879gc3";
 
 pub const CONTENT_TYPE: &str = "Content-Type";
 pub const URL_FORM_ENCODED: &str = "application/x-www-form-urlencoded";
@@ -63,20 +67,26 @@ pub const URL_FORM_ENCODED: &str = "application/x-www-form-urlencoded";
 pub const GD_21: BaseRequest = BaseRequest::new(
     GameVersion::Version { major: 2, minor: 1 },
     GameVersion::Version { major: 3, minor: 3 },
-    "Wmfd2893gb7",
+    SECRET,
+);
+
+pub const MODERATOR_GD_21: BaseRequest = BaseRequest::new(
+    GameVersion::Version { major: 2, minor: 1 },
+    GameVersion::Version { major: 3, minor: 3 },
+    MODERATOR_SECRET,
 );
 
 /// Base data included in every request made
 ///
 /// The fields in this struct are only relevant when making a request to the
-/// `boomlings` servers. When using GDCF with a custom Geometry Dash API, they
+/// `Boomlings` servers. When using GDCF with a custom Geometry Dash API, they
 /// can safely be ignored.
 #[derive(Debug, Clone, Hash, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BaseRequest<'a> {
     /// The version of the game client we're pretending to be
     ///
     /// ## GD Internals:
-    /// This field is called `gameVersion` in the boomlings API and needs to be
+    /// This field is called `gameVersion` in the Boomlings API and needs to be
     /// converted to a string response
     /// The value of this field doesn't matter, and the request will succeed
     /// regardless of what it's been set to
@@ -86,7 +96,7 @@ pub struct BaseRequest<'a> {
     /// Internal version of the game client we're pretending to be
     ///
     /// ## GD Internals:
-    /// This field is called `binaryVersion` in the boomlings API and needs to
+    /// This field is called `binaryVersion` in the Boomlings API and needs to
     /// be converted to a string
     ///
     /// The value of this field doesn't matter, and the request will succeed
@@ -118,28 +128,28 @@ impl Default for BaseRequest<'static> {
     }
 }
 
-#[derive(Debug, Serialize, Default, Clone, Hash)]
+#[derive(Debug, Serialize, Default, PartialEq, Eq, Clone, Hash)]
 pub struct AuthenticatedUser<'a> {
     /// The user name of the authenticated user
     ///
     /// ## GD Internals:
-    /// This field is called `userName` in the boomlings API
+    /// This field is called `userName` in the Boomlings API
     #[serde(rename = "userName")]
     pub user_name: &'a str,
 
     /// The account ID of the authenticated user
     ///
     /// ## GD Internals:
-    /// This field is called `accountID` in the boomlings API
+    /// This field is called `accountID` in the Boomlings API
     #[serde(rename = "accountID")]
     pub account_id: u64,
 
     /// The encrypted password of the authenticated user, this is sensitive data as it can be used to act as a user on endpoints requiring `gjp`
     ///
     /// ## GD Internals:
-    /// This field is called `gjp` in the boomlings API
+    /// This field is called `gjp` in the Boomlings API
     #[serde(rename = "gjp")]
-    pub password_hash: Cow<'a, str>
+    password_hash: Cow<'a, str>
 }
 
 pub(crate) fn to_string<S: Serialize>(request: S) -> String {
@@ -149,18 +159,4 @@ pub(crate) fn to_string<S: Serialize>(request: S) -> String {
     request.serialize(&mut serializer).unwrap();
 
     String::from_utf8(output).unwrap()
-}
-
-async fn execute<S: Serialize>(request: S, url: &str) -> Result<String, Error> {
-    let reqwest_client = reqwest::Client::new();
-    println!("{:?}", to_string(&request));
-    println!("{:?}", url);
-    reqwest_client
-        .post(url)
-        .body(to_string(request))
-        .header(CONTENT_TYPE, URL_FORM_ENCODED)
-        .send()
-        .await?
-        .text()
-        .await
 }

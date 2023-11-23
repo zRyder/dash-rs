@@ -20,7 +20,7 @@ pub struct LoginRequest<'a> {
     /// The Unique Device IDentifier (UDID) of the user to authenticate
     ///
     /// ## GD Internals:
-    /// This field is called `udid` in the boomlings API
+    /// This field is called `udid` in the Boomlings API
     /// The value of this value can be randomly generated
     /// The digits must be between 100,000 and 100,000,000
     /// This will succeed as long as these conditions are met
@@ -29,22 +29,18 @@ pub struct LoginRequest<'a> {
     /// The username of the user to authenticate
     ///
     /// ## GD Internals:
-    /// This field is called `userName` in the boomlings API
+    /// This field is called `userName` in the Boomlings API
     #[serde(rename = "userName")]
     pub user_name: &'a str,
 
     /// The unencrypted password of the user to authenticate
     ///
     /// ## GD Internals:
-    /// This field is called `password` in the boomlings API
-    pub password: &'a str,
+    /// This field is called `password` in the Boomlings API
+    password: &'a str,
 
     /// The secret token to call /database/accounts routes
     pub secret: &'a str,
-
-    //// The base request data
-    // #[serde(borrow)]
-    // pub base: BaseRequest<'a>,
 }
 
 impl<'a> LoginRequest<'a> {

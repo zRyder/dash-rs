@@ -1,4 +1,4 @@
-//! Module containing structs modelling Geometry Dash levels as they are returned from the boomlings
+//! Module containing structs modelling Geometry Dash levels as they are returned from the Boomlings
 //! servers
 
 use base64::URL_SAFE;

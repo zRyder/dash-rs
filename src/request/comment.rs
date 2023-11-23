@@ -6,7 +6,6 @@ use crate::{
     util
 };
 use serde::Serialize;
-use reqwest::Error;
 
 pub const LEVEL_COMMENTS_ENDPOINT: &str = "getGJComments21.php";
 pub const PROFILE_COMMENT_ENDPOINT: &str = "getGJAccountComments20.php";
@@ -24,13 +23,13 @@ pub enum SortMode {
     /// Sort the comments by likes, in descending order
     ///
     /// ## GD Internals:
-    /// This variant is represented by the numeric value `1` in the boomlings API
+    /// This variant is represented by the numeric value `1` in the Boomlings API
     Liked,
 
     /// Sort the comments from newest to oldest
     ///
     /// ## GD Internals:
-    /// This variant is represented by the numeric value `0` in the boomlings APII
+    /// This variant is represented by the numeric value `0` in the Boomlings API
     Recent,
 }
 
@@ -51,26 +50,26 @@ pub struct LevelCommentsRequest<'a> {
     /// Unknown, probably related to pagination
     ///
     /// ## GD Internals:
-    /// This field is called `total` in the boomlings API
+    /// This field is called `total` in the Boomlings API
     pub total: u32,
 
     /// The page of users to retrieve. The first page is page `0`
     ///
     /// ## GD Internals:
-    /// This field is called `page` in the boomlings API
+    /// This field is called `page` in the Boomlings API
     pub page: u32,
 
     /// What to sort by comments by
     ///
     /// ## GD Internals:
-    /// This field is called `mode` in the boomlings API.
+    /// This field is called `mode` in the Boomlings API.
     #[serde(rename = "mode")]
     pub sort_mode: SortMode,
 
     /// The id of the level to retrieve the comments of
     ///
     /// ## GD Internals:
-    /// This field is called `levelID` in the boomlings API
+    /// This field is called `levelID` in the Boomlings API
     #[serde(rename = "levelID")]
     pub level_id: u64,
 
@@ -78,7 +77,7 @@ pub struct LevelCommentsRequest<'a> {
     /// (via the "load more comments option), the API accepts any value. The max value for this is 100
     ///
     /// ## GD Internals:
-    /// This field is called `count` in the boomlings API
+    /// This field is called `count` in the Boomlings API
     #[serde(rename = "count")]
     pub limit: u32,
 }
@@ -89,10 +88,6 @@ impl<'a> LevelCommentsRequest<'a> {
     const_setter!(limit: u32);
 
     const_setter!(page: u32);
-
-    pub fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, LEVEL_COMMENTS_ENDPOINT)
-    }
 
     pub const fn new(level: u64) -> Self {
         Self::with_base(GD_21, level)
@@ -119,6 +114,10 @@ impl<'a> LevelCommentsRequest<'a> {
         self
     }
 
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, LEVEL_COMMENTS_ENDPOINT)
+    }
+
     pub fn to_string(&self) -> String {
         super::to_string(&self)
     }
@@ -132,19 +131,19 @@ pub struct ProfileCommentsRequest<'a> {
     /// Unknown, probably related to pagination
     ///
     /// ## GD Internals:
-    /// This field is called `total` in the boomlings API
+    /// This field is called `total` in the bBomlings API
     pub total: u32,
 
     /// The page of users to retrieve. The first page is page `0`
     ///
     /// ## GD Internals:
-    /// This field is called `page` in the boomlings API
+    /// This field is called `page` in the Boomlings API
     pub page: u32,
 
     /// The account id of the user to retrieve the comments of
     ///
     /// ## GD Internals:
-    /// This field is called `accountID` in the boomlings API
+    /// This field is called `accountID` in the Boomlings API
     #[serde(rename = "accountID")]
     pub account_id: u64,
 }
@@ -156,21 +155,21 @@ impl<'a> ProfileCommentsRequest<'a> {
 
     const_setter!(account_id: u64);
 
-    pub fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, PROFILE_COMMENT_ENDPOINT)
-    }
-
     pub const fn new(account: u64) -> Self {
         Self::with_base(GD_21, account)
     }
 
-    pub const fn with_base(base: BaseRequest<'a>, account: u64) -> Self {
+    const fn with_base(base: BaseRequest<'a>, account: u64) -> Self {
         ProfileCommentsRequest {
             account_id: account,
             base,
             page: 0,
             total: 0,
         }
+    }
+
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, PROFILE_COMMENT_ENDPOINT)
     }
 
     pub fn to_string(&self) -> String {
@@ -187,37 +186,38 @@ pub struct CommentHistoryRequest<'a> {
     /// Unknown, probably related to pagination
     ///
     /// ## GD Internals:
-    /// This field is called `total` in the boomlings API
+    /// This field is called `total` in the Boomlings API
     pub total: u32,
 
     /// The page of comments to retrieve. The first page is page `0` and pages will contain `total` number of comments
     ///
     /// ## GD Internals:
-    /// This field is called `page` in the boomlings API
+    /// This field is called `page` in the Boomlings API
     pub page: u32,
 
     /// The amount of comments to retrieve. Note that while in-game this can only be set to 20 or 40 however, a max of 100 comments can be returned
     /// ## GD Internals:
-    /// This field is called `count` in the boomlings API
+    /// This field is called `count` in the Boomlings API
     pub count: u32,
 
     /// What to sort by comments by
     ///
     /// ## GD Internals:
-    /// This field is called `mode` in the boomlings API.
+    /// This field is called `mode` in the Boomlings API.
     #[serde(rename = "mode")]
     pub sort_mode: SortMode,
 
     /// The id of the player to retrieve comments, this is `not` the account ID
     ///
     /// ## GD Internals:
-    /// This field is called `userID` in the boomlings API.
+    /// This field is called `userID` in the Boomlings API.
     #[serde(rename = "userID")]
     pub player_id: u64,
 }
 
 impl<'a> CommentHistoryRequest<'a> {
     const_setter!(page: u32);
+
     const_setter!(count: u32);
 
     pub const fn with_base(base: BaseRequest<'a>, player: u64) -> Self {
@@ -255,14 +255,14 @@ pub struct UploadCommentRequest<'a> {
     pub base: BaseRequest<'a>,
 
     /// The authenticated user data
-    pub authenticated_user: AuthenticatedUser<'a>,
+    authenticated_user: AuthenticatedUser<'a>,
 
     /// The content of the comment, this value will be base64 url encoded
     pub comment: Cow<'a, str>,
 
     /// The id of the level the comment to upload is posted to
     /// ## GD Internals:
-    /// This field is called `levelID` in the boomlings API
+    /// This field is called `levelID` in the Boomlings API
     #[serde(rename = "levelID")]
     pub level_id: u64,
 
@@ -272,6 +272,7 @@ pub struct UploadCommentRequest<'a> {
 
 impl<'a> UploadCommentRequest<'a> {
     const_setter!(level_id: u64);
+
     const_setter!(percent: u8);
 
     pub fn to_url(&self) -> String {
@@ -283,7 +284,7 @@ impl<'a> UploadCommentRequest<'a> {
         Self::with_base(GD_21, authenticated_user, level_id)
     }
 
-    pub const fn with_base(base: BaseRequest<'a>, authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
+    const fn with_base(base: BaseRequest<'a>, authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
         UploadCommentRequest{
             base,
             authenticated_user,
@@ -317,28 +318,25 @@ pub struct DeleteCommentRequest<'a> {
     pub base: BaseRequest<'a>,
 
     /// The authenticated user data
-    pub authenticated_user: AuthenticatedUser<'a>,
+    authenticated_user: AuthenticatedUser<'a>,
 
     /// The id of the level comment to delete
     /// ## GD Internals:
-    /// This field is called `commentID` in the boomlings API
+    /// This field is called `commentID` in the Boomlings API
     #[serde(rename = "commentID")]
     pub comment_id: u64,
 
     /// The id of the level the comment to delete is posted to
     /// ## GD Internals:
-    /// This field is called `levelID` in the boomlings API
+    /// This field is called `levelID` in the Boomlings API
     #[serde(rename = "levelID")]
     pub level_id: u64,
 }
 
 impl<'a> DeleteCommentRequest<'a> {
     const_setter!(comment_id: u64);
-    const_setter!(level_id: u64);
 
-    pub fn to_url(&self) -> String {
-        format!("{}{}", REQUEST_BASE_URL, DELETE_COMMENT_ENDPOINT)
-    }
+    const_setter!(level_id: u64);
 
     pub fn new(authenticated_user: AuthenticatedUser<'a>, level_id: u64, comment_id: u64) -> Self {
         Self::with_base(GD_21, authenticated_user, level_id, comment_id)
@@ -353,12 +351,12 @@ impl<'a> DeleteCommentRequest<'a> {
         }
     }
 
-    pub fn to_string(&self) -> String {
-        super::to_string(&self)
+    pub fn to_url(&self) -> String {
+        format!("{}{}", REQUEST_BASE_URL, DELETE_COMMENT_ENDPOINT)
     }
 
-    pub async fn get_response_body(&self) -> Result<String, Error> {
-        super::execute(&self, &self.to_url()).await
+    pub fn to_string(&self) -> String {
+        super::to_string(&self)
     }
 }
 
