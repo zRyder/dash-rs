@@ -125,14 +125,33 @@ pub enum SuggestedFeatureScore {
     /// Suggest the level with a Featured feature score
     /// ## GD Internals:
     /// This variant is represented by the numeric value `1` in the Boomlings API
-    Featured
+    Featured,
+
+    /// Suggest the level with a Epic feature score
+    /// ## GD Internals:
+    /// This variant is represented by the numeric value `2` in the Boomlings API
+    Epic,
+
+    /// Suggest the level with a Legendary feature score
+    /// ## GD Internals:
+    /// This variant is represented by the numeric value `3` in the Boomlings API
+    Legendary,
+
+    /// Suggest the level with a Mythic feature score
+    /// ## GD Internals:
+    /// This variant is represented by the numeric value `4` in the Boomlings API
+    Mythic
 }
 
 impl From<SuggestedFeatureScore> for u8 {
     fn from(feature_score: SuggestedFeatureScore) -> Self {
         match feature_score {
             SuggestedFeatureScore::Rate => 0,
-            SuggestedFeatureScore::Featured => 1
+            SuggestedFeatureScore::Featured => 1,
+            SuggestedFeatureScore::Epic => 2,
+            SuggestedFeatureScore::Legendary => 3,
+            SuggestedFeatureScore::Mythic => 4,
+
         }
     }
 }
