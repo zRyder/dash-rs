@@ -61,6 +61,13 @@ pub enum LevelLength {
     /// This variant is represented by the value `4` in both requests and
     /// responses
     ExtraLong,
+
+    /// Platformer, referred to as `Plat.` in game
+    ///
+    /// ## GD Internals:
+    /// This variant is represented by the value `5` in both requests and
+    /// responses
+    Platformer,
 }
 
 impl From<u8> for LevelLength {
@@ -71,6 +78,7 @@ impl From<u8> for LevelLength {
             2 => LevelLength::Medium,
             3 => LevelLength::Long,
             4 => LevelLength::ExtraLong,
+            5 => LevelLength::Platformer,
             _ => LevelLength::Unknown(i)
         }
     }
@@ -84,6 +92,7 @@ impl From<LevelLength> for u8 {
             LevelLength::Medium => 2,
             LevelLength::Long => 3,
             LevelLength::ExtraLong => 4,
+            LevelLength::Platformer => 5,
             LevelLength::Unknown(inner) => inner
         }
     }
