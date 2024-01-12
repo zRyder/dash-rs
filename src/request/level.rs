@@ -617,6 +617,7 @@ impl Serialize for LengthFilter {
             LevelLength::Medium => 2,
             LevelLength::Long => 3,
             LevelLength::ExtraLong => 4,
+            LevelLength::Platformer => 5
         };
 
         serializer.serialize_u8(numerical_value)
