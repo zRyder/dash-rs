@@ -1,5 +1,6 @@
 use serde::Serialize;
-use crate::request::{AuthenticatedUser, BaseRequest, MODERATOR_GD_21, REQUEST_BASE_URL};
+use crate::request::{BaseRequest, MODERATOR_GD_21, REQUEST_BASE_URL};
+use crate::request::account::AuthenticatedUser;
 
 pub const SUGGEST_STARS_ENDPOINT: &str = "suggestGJStars20.php";
 
@@ -188,14 +189,15 @@ impl<'a> SuggestStarsRequest<'a> {
 #[cfg(test)]
 mod tests {
     use std::borrow::Cow;
+    use crate::request::account::AuthenticatedUser;
     use crate::request::AuthenticatedUser;
     use crate::request::moderator::{SuggestedFeatureScore, SuggestedStars, SuggestStarsRequest};
 
-    const TEST_AUTHENTICATED_USER: AuthenticatedUser = AuthenticatedUser {
-        user_name: "TestUser",
-        account_id: 472634,
-        password_hash: Cow::Borrowed("VGhpc0lzQUZha2VQYXNzd29yZA==")
-    };
+    const TEST_AUTHENTICATED_USER: AuthenticatedUser = AuthenticatedUser::new(
+        "Ryder",
+        57903,
+        Cow::Borrowed("UmVkaXNuZU1FQXJFREdlTnRJQw==")
+    );
 
     #[test]
     fn serialize_suggest_stars_request() {

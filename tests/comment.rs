@@ -1,9 +1,11 @@
+use std::borrow::Cow;
 use dash_rs::{
     request::{
         account::LoginRequest,
         comment::{UploadCommentRequest, DeleteCommentRequest, CommentHistoryRequest, LevelCommentsRequest, ProfileCommentsRequest, SortMode},
     },
 };
+use dash_rs::request::account::AuthenticatedUser;
 use dash_rs::response::{parse_get_gj_acccount_comments_response, parse_get_gj_comments_response};
 
 const CONTENT_TYPE: &str = "Content-Type";
@@ -90,13 +92,11 @@ async fn upload_comment() {
     let password = dotenv::var("GJ_ACCOUNT_PASSWORD").unwrap();
     let client = reqwest::Client::new();
 
-    let login_request = LoginRequest::default()
-        .user_name(&user_name)
-        .password(&password);
-
-    let login_response = login_request.to_authenticated_user()
-        .await
-        .unwrap();
+    let login_response = AuthenticatedUser::new(
+        "Ryder",
+        57903,
+        Cow::Borrowed("UmVkaXNuZU1FQXJFREdlTnRJQw==")
+    );
 
     let comment_upload_request = UploadCommentRequest::new(login_response, 76298358)
         .comment("More tests still ignore me")
@@ -117,19 +117,13 @@ async fn upload_comment() {
 
 #[tokio::test]
 async fn delete_comment() {
-    dotenv::from_filename("test_env.env").expect("test_env.env file not found");
-
-    let user_name = dotenv::var("GJ_ACCOUNT_USERNAME").unwrap();
-    let password = dotenv::var("GJ_ACCOUNT_PASSWORD").unwrap();
     let client = reqwest::Client::new();
 
-    let request = LoginRequest::default()
-        .user_name(&user_name)
-        .password(&password);
-
-    let login_response = request.to_authenticated_user()
-        .await
-        .unwrap();
+    let login_response = AuthenticatedUser::new(
+        "Ryder",
+        57903,
+        Cow::Borrowed("UmVkaXNuZU1FQXJFREdlTnRJQw==")
+    );
 
     let comment_history_request = CommentHistoryRequest::new(3713125)
         .sort_mode(SortMode::Recent)

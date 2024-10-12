@@ -1,22 +1,17 @@
-use dash_rs::request::account::LoginRequest;
+use std::borrow::Cow;
+use dash_rs::request::account::{AuthenticatedUser, LoginRequest};
 use dash_rs::request::{CONTENT_TYPE, URL_FORM_ENCODED};
 use dash_rs::request::moderator::{SuggestedFeatureScore, SuggestedStars, SuggestStarsRequest};
 
 #[tokio::test]
 async fn suggest_level() {
-    dotenv::from_filename("test_env.env").expect("test_env.env file not found");
-
-    let user_name = dotenv::var("GJ_ACCOUNT_USERNAME").unwrap();
-    let password = dotenv::var("GJ_ACCOUNT_PASSWORD").unwrap();
     let client = reqwest::Client::new();
 
-    let request = LoginRequest::default()
-        .user_name(&user_name)
-        .password(&password);
-
-    let login_response = request.to_authenticated_user()
-        .await
-        .unwrap();
+    let login_response = AuthenticatedUser::new(
+        "Ryder",
+        57903,
+        Cow::Borrowed("UmVkaXNuZU1FQXJFREdlTnRJQw==")
+    );
 
     let suggest_level_request = SuggestStarsRequest::new(login_response, 95524621)
         .feature(SuggestedFeatureScore::Featured)

@@ -5,7 +5,6 @@
 //! making/proxying requests for the Boomlings servers seems rather useless to me, as they already
 //! contain a lot of Boomlings-specific fields.
 
-use std::borrow::Cow;
 use crate::{
     model::{
         GameVersion
@@ -126,30 +125,6 @@ impl Default for BaseRequest<'static> {
     fn default() -> Self {
         GD_21
     }
-}
-
-#[derive(Debug, Serialize, Default, PartialEq, Eq, Clone, Hash)]
-pub struct AuthenticatedUser<'a> {
-    /// The user name of the authenticated user
-    ///
-    /// ## GD Internals:
-    /// This field is called `userName` in the Boomlings API
-    #[serde(rename = "userName")]
-    pub user_name: &'a str,
-
-    /// The account ID of the authenticated user
-    ///
-    /// ## GD Internals:
-    /// This field is called `accountID` in the Boomlings API
-    #[serde(rename = "accountID")]
-    pub account_id: u64,
-
-    /// The encrypted password of the authenticated user, this is sensitive data as it can be used to act as a user on endpoints requiring `gjp`
-    ///
-    /// ## GD Internals:
-    /// This field is called `gjp` in the Boomlings API
-    #[serde(rename = "gjp")]
-    password_hash: Cow<'a, str>
 }
 
 pub(crate) fn to_string<S: Serialize>(request: S) -> String {

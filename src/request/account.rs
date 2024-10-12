@@ -1,13 +1,11 @@
+use std::borrow::Cow;
 use std::fmt;
 use std::fmt::Formatter;
-use reqwest::{Error, Response};
 use serde::{Serialize};
 
 use crate::{
-    util,
     request::{REQUEST_BASE_URL}
 };
-use crate::request::{AuthenticatedUser};
 
 pub const ACCOUNT_LOGIN_ENPOINT: &str = "accounts/loginGJAccount.php";
 pub const XOR_KEY: &str = "37526";
@@ -63,34 +61,38 @@ impl<'a> LoginRequest<'a> {
     fn to_string(&self) -> String {
         super::to_string(&self)
     }
+}
 
-    async fn execute(&self) -> Result<Response, Error> {
-        let reqwest_client = reqwest::Client::new();
-        reqwest_client
-            .post(self.to_url())
-            .body(self.to_string())
-            .header(CONTENT_TYPE, URL_FORM_ENCODED)
-            .send()
-            .await
-    }
+#[derive(Debug, Serialize, Default, PartialEq, Eq, Clone, Hash)]
+pub struct AuthenticatedUser<'a> {
+    /// The username of the authenticated user
+    ///
+    /// ## GD Internals:
+    /// This field is called `userName` in the Boomlings API
+    #[serde(rename = "userName")]
+    pub user_name: &'a str,
 
-    pub async fn to_authenticated_user(&self) -> Result<AuthenticatedUser,  AuthenticationError> {
-        match self.execute().await {
-            Ok(login_result) => {
-                let response_body = login_result.text().await.unwrap();
-                if response_body.eq("-1") {
-                    return Err(AuthenticationError("invalid credentials".into()))
-                }
+    /// The account ID of the authenticated user
+    ///
+    /// ## GD Internals:
+    /// This field is called `accountID` in the Boomlings API
+    #[serde(rename = "accountID")]
+    pub account_id: u64,
 
-                Ok(AuthenticatedUser {
-                    user_name: self.user_name,
-                    account_id: response_body.splitn(2, ",").next().unwrap().parse::<u64>().unwrap(),
-                    password_hash: base64::encode_config(&util::xor(self.password.as_bytes().to_vec(), XOR_KEY.as_bytes()), base64::URL_SAFE).into()
-                })
-            }
-            Err(login_error) => {
-                Err(AuthenticationError(login_error.to_string()))
-            }
+    /// The encrypted password of the authenticated user, this is sensitive data as it can be used to act as a user on endpoints requiring `gjp`
+    ///
+    /// ## GD Internals:
+    /// This field is called `gjp` in the Boomlings API
+    #[serde(rename = "gjp")]
+    password_hash: Cow<'a, str>
+}
+
+impl<'a> AuthenticatedUser<'a> {
+    pub fn new(user_name: &'a str, account_id: u64, password_hash: Cow<'a, str>) -> Self {
+        AuthenticatedUser{
+            user_name,
+            account_id,
+            password_hash,
         }
     }
 }

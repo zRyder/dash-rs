@@ -2,10 +2,11 @@
 
 use std::borrow::Cow;
 use crate::{
-    request::{BaseRequest, GD_21, REQUEST_BASE_URL, AuthenticatedUser},
+    request::{BaseRequest, GD_21, REQUEST_BASE_URL},
     util
 };
 use serde::Serialize;
+use crate::request::account::AuthenticatedUser;
 
 pub const LEVEL_COMMENTS_ENDPOINT: &str = "getGJComments21.php";
 pub const PROFILE_COMMENT_ENDPOINT: &str = "getGJAccountComments20.php";
@@ -279,7 +280,6 @@ impl<'a> UploadCommentRequest<'a> {
         format!("{}{}", REQUEST_BASE_URL, UPLOAD_COMMENT_ENDPOINT)
     }
 
-
     pub fn new(authenticated_user: AuthenticatedUser<'a>, level_id: u64) -> Self {
         Self::with_base(GD_21, authenticated_user, level_id)
     }
@@ -365,12 +365,13 @@ mod tests {
     use std::borrow::Cow;
     use crate::request::comment::{LevelCommentsRequest, ProfileCommentsRequest, CommentHistoryRequest, UploadCommentRequest, DeleteCommentRequest, SortMode};
     use crate::request::{AuthenticatedUser};
+    use crate::request::account::AuthenticatedUser;
 
-    const TEST_AUTHENTICATED_USER: AuthenticatedUser = AuthenticatedUser {
-    user_name: "TestUser",
-    account_id: 472634,
-    password_hash: Cow::Borrowed("VGhpc0lzQUZha2VQYXNzd29yZA==")
-    };
+    const TEST_AUTHENTICATED_USER: AuthenticatedUser = AuthenticatedUser::new(
+        "Ryder",
+        57903,
+        Cow::Borrowed("UmVkaXNuZU1FQXJFREdlTnRJQw==")
+    );
 
     #[test]
     fn serialize_level_comments() {

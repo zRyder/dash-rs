@@ -54,8 +54,9 @@
 // save_load_roundtrip!(Profile, PROFILE_STARDUST1971);
 // load_save_roundtrip!(Profile, PROFILE_STARDUST1971_DATA, PROFILE_STARDUST1971, ":", true);
 
+use std::borrow::Cow;
 use dash_rs::model::user::ModLevel;
-use dash_rs::request::account::LoginRequest;
+use dash_rs::request::account::{AuthenticatedUser, LoginRequest};
 use dash_rs::request::user::UserRequest;
 use dash_rs::response::parse_get_gj_user_info_response;
 
@@ -64,19 +65,13 @@ const URL_FORM_ENCODED: &str = "application/x-www-form-urlencoded";
 
 #[tokio::test]
 async fn test_get_user_profile_with_auth() {
-    dotenv::from_filename("test_env.env").expect("test_env.env file not found");
-
-    let user_name = dotenv::var("GJ_ACCOUNT_USERNAME").unwrap();
-    let password = dotenv::var("GJ_ACCOUNT_PASSWORD").unwrap();
     let client = reqwest::Client::new();
 
-    let login_request = LoginRequest::default()
-        .user_name(&user_name)
-        .password(&password);
-
-    let login_response = login_request.to_authenticated_user()
-        .await
-        .unwrap();
+    let login_response = AuthenticatedUser::new(
+        "Ryder",
+        57903,
+        Cow::Borrowed("UmVkaXNuZU1FQXJFREdlTnRJQw==")
+    );
 
     let request = UserRequest::with_authenticated_user(login_response, 57903);
 
