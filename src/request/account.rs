@@ -3,9 +3,7 @@ use std::fmt;
 use std::fmt::Formatter;
 use serde::{Serialize};
 
-use crate::{
-    request::{REQUEST_BASE_URL}
-};
+use crate::{request::{REQUEST_BASE_URL}, util};
 
 pub const ACCOUNT_LOGIN_ENPOINT: &str = "accounts/loginGJAccount.php";
 pub const XOR_KEY: &str = "37526";
@@ -88,11 +86,11 @@ pub struct AuthenticatedUser<'a> {
 }
 
 impl<'a> AuthenticatedUser<'a> {
-    pub fn new(user_name: &'a str, account_id: u64, password_hash: Cow<'a, str>) -> Self {
+    pub fn new(user_name: &'a str, account_id: u64, password: Cow<'a, str>) -> Self {
         AuthenticatedUser{
             user_name,
             account_id,
-            password_hash,
+            password_hash: base64::encode_config(&util::xor(password.as_bytes().to_vec(), XOR_KEY.as_bytes()), base64::URL_SAFE).into(),
         }
     }
 }
