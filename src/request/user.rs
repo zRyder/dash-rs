@@ -4,7 +4,7 @@ use crate::{
     request::{BaseRequest, GD_21, REQUEST_BASE_URL},
 };
 use serde::Serialize;
-use crate::request::AuthenticatedUser;
+use crate::request::account::AuthenticatedUser;
 
 pub const GET_USER_ENDPOINT: &str = "getGJUserInfo20.php";
 pub const SEARCH_USER_ENDPOINT: &str = "getGJUsers20.php";
@@ -111,14 +111,14 @@ impl<'a> UserSearchRequest<'a> {
 #[cfg(test)]
 mod tests {
     use std::borrow::Cow;
-    use crate::request::AuthenticatedUser;
+    use crate::request::account::AuthenticatedUser;
     use crate::request::user::{UserRequest, UserSearchRequest};
 
-    const TEST_AUTHENTICATED_USER: AuthenticatedUser = AuthenticatedUser {
-        user_name: "TestUser",
-        account_id: 472634,
-        password_hash: Cow::Borrowed("VGhpc0lzQUZha2VQYXNzd29yZA==")
-    };
+    const TEST_AUTHENTICATED_USER: AuthenticatedUser = AuthenticatedUser::new(
+        "Ryder",
+        57903,
+        Cow::Borrowed("UmVkaXNuZU1FQXJFREdlTnRJQw==")
+    );
 
     #[test]
     fn serialize_user_request() {
