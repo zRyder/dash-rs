@@ -17,8 +17,7 @@ use crate::{
     DeError, HasRobtopFormat,
 };
 
-use serde::__private::Formatter;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use crate::model::level::local_level::LevelData;
 
 // Since NoneError is not stabilized, we cannot do `impl From<NoneError> for ResponseError<'_>`, so

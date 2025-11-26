@@ -1,5 +1,5 @@
-use serde::__private::Formatter;
 use std::{fmt::Display, io};
+use std::fmt::Formatter;
 
 /// Errors that can occur during serialization
 #[derive(Debug)]

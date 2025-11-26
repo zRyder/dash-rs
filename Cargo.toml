@@ -28,7 +28,7 @@ tokio-test = "*"
 dotenv = "0.15.0"
 
 [build-dependencies]
-serde = {version = "1.0.104", features = ["derive"]}
+serde = {version = "1.0.228", features = ["derive"]}
 serde_yaml = "0.8.14"
 
 [[bench]]

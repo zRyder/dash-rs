@@ -1,7 +1,6 @@
 //! Module containing the error type for deserialization errors
 
-use serde::__private::Formatter;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 /// Errors that can occur during deserialization
 #[derive(Debug)]
 pub enum Error<'de> {
